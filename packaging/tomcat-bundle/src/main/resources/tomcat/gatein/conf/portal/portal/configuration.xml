@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+
+    Copyright (C) 2010 eXo Platform SAS.
+
+    This is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation; either version 2.1 of
+    the License, or (at your option) any later version.
+
+    This software is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this software; if not, write to the Free
+    Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
+-->
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.exoplatform.org/xml/ns/kernel_1_2.xsd http://www.exoplatform.org/xml/ns/kernel_1_2.xsd"
+  xmlns="http://www.exoplatform.org/xml/ns/kernel_1_2.xsd">
+
+  <component>
+    <key>org.exoplatform.services.mail.MailService</key>
+    <type>org.exoplatform.services.mail.impl.MailServiceImpl</type>
+    <init-params>
+      <properties-param>
+        <name>config</name>
+        <property name="mail.smtp.auth.username" value="${gatein.email.smtp.username}" />
+        <property name="mail.smtp.auth.password" value="${gatein.email.smtp.password}" />
+        <property name="mail.smtp.host" value="${gatein.email.smtp.host}" />
+        <property name="mail.smtp.port" value="${gatein.email.smtp.port}" />
+        <property name="mail.smtp.starttls.enable" value="${gatein.email.smtp.starttls.enable}" />
+        <property name="mail.smtp.auth" value="${gatein.email.smtp.auth}" />
+        <property name="mail.smtp.debug" value="false" />
+        <property name="mail.smtp.socketFactory.port" value="${gatein.email.smtp.socketFactory.port}" />
+        <property name="mail.smtp.socketFactory.class" value="${gatein.email.smtp.socketFactory.class}" />
+        <property name="mail.smtp.socketFactory.fallback" value="false" />
+        <property name="mail.smtp.localhost" value="localhost" />
+      </properties-param>
+    </init-params>
+  </component>
+
+  <component>
+    <key>org.exoplatform.services.security.Authenticator</key>
+    <type>com.exoplatform.cloudworkspaces.organization.authenticator.CloudWorkspacesAuthenticatorImpl</type>
+  </component>
+
+  <component>
+    <key>com.exoplatform.cloud.multitenancy.plugin.CreateNewRepositoryPlugin</key>
+    <!-- type>org.exoplatform.cloudmanagement.multitenancy.CreateNewRepositoryPlugin</type -->
+    <!-- impl with support of JCR Value storages -->
+    <type>com.exoplatform.platform.cloud.services.multitenancy.CreateNewRepositoryPlugin</type>
+    <description>Create database</description>
+    <init-params>
+      <value-param>
+        <name>priority</name>
+        <value>10</value>
+      </value-param>
+      <value-param>
+        <name>configuration-path</name>
+        <value>file:///${catalina.home}/${exo.conf.dir.name}/cloud/platform-tenant-configuration-template.xml</value>
+      </value-param>
+    </init-params>
+  </component>
+
+  <!-- use old-style paths for users, required for eXo Intranet migration only -->
+  <!-- component>
+    <key>org.exoplatform.services.jcr.ext.hierarchy.NodeHierarchyCreator</key>
+    <type>org.exoplatform.services.jcr.ext.hierarchy.impl.NodeHierarchyCreatorImpl</type>
+    <init-params>
+       <value-param>
+         <name>old-user-distribution</name>
+         <value>true</value>
+       </value-param>
+     </init-params>
+  </component -->
+
+  <component>
+    <key>org.exoplatform.services.jcr.config.RepositoryServiceConfiguration</key>
+    <type>org.exoplatform.services.jcr.impl.config.RepositoryServiceConfigurationImpl</type>
+      <init-params>
+        <value-param>
+        <name>conf-path</name>
+        <description>JCR configuration file</description>
+        <value>file:///${tenant.data.dir}/repository-configuration.xml</value>
+      </value-param>
+    </init-params>
+  </component>
+
+  <!-- MySQL configuration -->
+  <component>
+    <key>org.exoplatform.services.database.creator.DBCreator</key>
+    <type>org.exoplatform.services.database.creator.DBCreator</type>
+    <init-params>
+      <properties-param>
+        <name>db-connection</name>
+        <description>database connection properties</description>
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://${tenant.db.host}/" />
+        <property name="username" value="${tenant.db.user}" />
+        <property name="password" value="${tenant.db.password}" />
+        <property name="maxActive" value="5" />
+        <property name="maxIdle" value="2" />
+        <property name="initialSize" value="2" />
+        <property name="validationQuery" value="select 1" />
+        <property name="testOnReturn" value="true" />
+        <property name="timeBetweenEvictionRunsMillis" value="300000" />
+      </properties-param>
+      <properties-param>
+        <name>db-creation</name>
+        <description>database creation properties</description>
+        <property name="scriptPath" value="../${exo.conf.dir.name}/cloud/databases/mysqldb-schema.sql" />
+        <property name="username" value="${tenant.db.user}" />
+        <property name="password" value="${tenant.db.password}" />
+      </properties-param>
+    </init-params>
+  </component>
+
+  <!-- passwords encrypter, mandatory for eXo Intranet migration -->
+  <component>
+    <key>org.exoplatform.services.security.PasswordEncrypter</key>
+    <type>com.exoplatform.platform.security.MD5HexPasswordEncrypter</type>
+  </component>
+
+  <!-- org-service listener for password encryption, mandatory for eXo Intranet migration -->
+  <external-component-plugins>
+    <target-component>org.exoplatform.services.organization.OrganizationService</target-component>
+    <component-plugin>
+      <name>organization.initializer.group.event.listener</name>
+      <set-method>addListenerPlugin</set-method>
+      <type>com.exoplatform.platform.security.PasswordEncrypterUserListener</type>
+      <description>description</description>
+    </component-plugin>
+    <component-plugin>
+      <name>user.created.listener</name>
+      <set-method>addListenerPlugin</set-method>
+      <type>com.exoplatform.cloudworkspaces.organization.listener.UserLimitListener</type>
+      <description>this listener controls users amount for a given workspace </description>
+    </component-plugin>
+    <component-plugin>
+      <name>membership.modification.listener</name>
+      <set-method>addListenerPlugin</set-method>
+      <type>com.exoplatform.cloudworkspaces.organization.listener.UserMembershipListener</type>
+      <description>this listener aloows membership changes only of the same or lower membership type</description>
+    </component-plugin>
+    <component-plugin>
+      <name>user.modification.listener</name>
+      <set-method>addListenerPlugin</set-method>
+      <type>com.exoplatform.cloudworkspaces.organization.listener.MandatoryUserChangeListener</type>
+      <description>this listener forbids modifications of mandatory users</description>
+    </component-plugin>
+    <component-plugin>
+      <name>group.modification.listener</name>
+      <set-method>addListenerPlugin</set-method>
+      <type>com.exoplatform.cloudworkspaces.organization.listener.MandatoryGroupChangeListener</type>
+      <description>this listener forbids modifications of mandatory groups</description>
+    </component-plugin>
+    <component-plugin>
+      <name>membershiptype.modification.listener</name>
+      <set-method>addListenerPlugin</set-method>
+      <type>com.exoplatform.cloudworkspaces.organization.listener.MandatoryMembershipTypeChangeListener</type>
+      <description>this listener forbids modifications of mandatory membership types</description>
+    </component-plugin>
+  </external-component-plugins>
+
+  <!-- MySQL Configuration -->
+  <external-component-plugins>
+    <target-component>org.exoplatform.services.naming.InitialContextInitializer</target-component>
+    <component-plugin>
+      <name>bind.datasource</name>
+      <set-method>addPlugin</set-method>
+      <type>org.exoplatform.services.naming.BindReferencePlugin</type>
+      <init-params>
+        <value-param>
+          <name>bind-name</name>
+          <value>${tenant.repository.name}</value>
+        </value-param>
+        <value-param>
+          <name>class-name</name>
+          <value>javax.sql.DataSource</value>
+        </value-param>
+        <value-param>
+          <name>factory</name>
+          <value>org.apache.commons.dbcp.BasicDataSourceFactory</value>
+        </value-param>
+        <properties-param>
+          <name>ref-addresses</name>
+          <description>ref-addresses</description>
+          <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+          <property name="url" value="jdbc:mysql://${tenant.db.host}/${tenant.repository.name}" />
+          <property name="username" value="${tenant.db.user}" />
+          <property name="password" value="${tenant.db.password}" />
+          <property name="maxActive" value="50" />
+          <property name="maxIdle" value="2" />
+          <property name="initialSize" value="5" />
+          <property name="validationQuery" value="select 1" />
+          <property name="testOnReturn" value="true" />
+          <property name="timeBetweenEvictionRunsMillis" value="300000" />
+        </properties-param>
+      </init-params>
+    </component-plugin>
+  </external-component-plugins>
+  <remove-configuration>org.exoplatform.platform.gadget.services.GroovyScript2RestLoader.GroovyScript2RestLoaderExt</remove-configuration>
+</configuration>

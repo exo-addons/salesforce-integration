@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<web-app
+        version="3.0"
+        metadata-complete="true"
+        xmlns="http://java.sun.com/xml/ns/javaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+    <display-name>salesforce-extension</display-name>
+
+
+	<!-- ================================================================== -->
+	<!--   RESOURCE FILTER TO CACHE MERGED JAVASCRIPT AND CSS               -->
+	<!-- ================================================================== -->
+	<filter>
+		<filter-name>ResourceRequestFilter</filter-name>
+		<filter-class>org.exoplatform.portal.application.ResourceRequestFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>ResourceRequestFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+	<!-- ================================================================== -->
+	<!--           LISTENER                                                 -->
+	<!-- ================================================================== -->
+	<listener>
+		<listener-class>org.exoplatform.container.web.PortalContainerConfigOwner</listener-class>
+	</listener>
+	<!-- ================================================================== -->
+	<!--           SERVLET                                                  -->
+	<!-- ================================================================== -->
+	<servlet>
+		<servlet-name>GateInServlet</servlet-name>
+		<servlet-class>org.gatein.wci.api.GateInServlet</servlet-class>
+		<load-on-startup>0</load-on-startup>
+	</servlet>
+
+	<servlet>
+		<servlet-name>OAuthServlet</servlet-name>
+		<servlet-class>org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet</servlet-class>
+		<load-on-startup>0</load-on-startup>
+	</servlet>
+
+	<servlet>
+		<servlet-name>OppServlet</servlet-name>
+		<servlet-class>org.exoplatform.salesforce.integ.connector.servlet.OppServlet</servlet-class>
+		<load-on-startup>0</load-on-startup>
+	</servlet>
+	
+	
+	<!--  =================================================================  -->
+	<servlet-mapping>
+		<servlet-name>GateInServlet</servlet-name>
+		<url-pattern>/gateinservlet</url-pattern>
+	</servlet-mapping>
+	
+		<servlet-mapping>
+		<servlet-name>OAuthServlet</servlet-name>
+		<url-pattern>/oauth</url-pattern>
+		<url-pattern>/oauth/*</url-pattern>
+		
+	</servlet-mapping>
+	
+	        <servlet-mapping>
+        <servlet-name>OppServlet</servlet-name>
+        <url-pattern>/opp</url-pattern>
+    </servlet-mapping>
+	
+</web-app>
