@@ -1,0 +1,16 @@
+
+      <div class="form-create-row">
+                <label>Client Id</label>
+                <input id="clientId" type="text" class="field" value="" />
+      </div>     
+            <div class="form-create-row">
+                <label>Client Secret</label>
+                <input id="clientSecret" type="text" class="field" value="" />
+            </div>
+                   <div class="form-create-row">
+                <label>Redirect Uri</label>
+                <input id="redirectUri" type="text" class="field" value="" />
+            </div>
+	 <button class="btn btn-primary" type="button" onclick="sendAjax()">Save</button>
+
+

@@ -22,5 +22,69 @@
                xmlns="http://www.exoplaform.org/xml/ns/kernel_1_2.xsd">
 	<component>
 		<type>org.exoplatform.salesforce.integ.rest.OppRestService</type>
-	</component>               
+	</component>
+
+
+	    <component>
+        <key>org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage</key>
+        <type>org.exoplatform.salesforce.integ.connector.storage.impl.ConfigurationInfoStorageImpl</type>
+    </component>
+        <external-component-plugins>
+        <target-component>org.exoplatform.services.jcr.RepositoryService</target-component>
+        <component-plugin>
+            <name>add.namespaces</name>
+            <set-method>addPlugin</set-method>
+            <type>org.exoplatform.services.jcr.impl.AddNamespacesPlugin</type>
+            <init-params>
+                <properties-param>
+                    <name>namespaces</name>
+                    <property name="sf" value="http://www.exoplatform.org/jcr/sf/1.0/"/>
+                </properties-param>
+            </init-params>
+        </component-plugin>
+        <component-plugin>
+            <name>add.social.nodeType</name>
+            <set-method>addPlugin</set-method>
+            <type>org.exoplatform.services.jcr.impl.AddNodeTypePlugin</type>
+            <init-params>
+                <values-param>
+                    <name>autoCreatedInNewRepository</name>
+                    <description>Node types configuration file</description>
+                    <value>jar:/conf/portal/salesforce-chromattic-nodetypes.xml</value>
+                </values-param>
+            </init-params>
+        </component-plugin>
+    </external-component-plugins>
+
+    <external-component-plugins>
+        <target-component>org.exoplatform.commons.chromattic.ChromatticManager</target-component>
+        <component-plugin>
+            <name>chromattic</name>
+            <set-method>addLifeCycle</set-method>
+            <type>org.exoplatform.commons.chromattic.ChromatticLifeCycle</type>
+            <init-params>
+                <value-param>
+                    <name>domain-name</name>
+                    <value>sf</value>
+                </value-param>
+                <value-param>
+                    <name>workspace-name</name>
+                    <value>social</value>
+                </value-param>
+                <value-param profiles="all,minimal">
+                    <name>workspace-name</name>
+                    <value>social</value>
+                </value-param>
+                <values-param>
+                    <name>entities</name>
+                    <value>org.exoplatform.salesforce.integ.connector.entity.ConfigurationInfo</value>
+                </values-param>
+                <properties-param>
+                    <name>options</name>
+                    <property name="org.chromattic.api.Option.root_node.path" value="/production"/>
+                    <property name="org.chromattic.api.Option.root_node.create" value="true"/>
+                </properties-param>
+            </init-params>
+        </component-plugin>
+    </external-component-plugins>               
 </configuration>
