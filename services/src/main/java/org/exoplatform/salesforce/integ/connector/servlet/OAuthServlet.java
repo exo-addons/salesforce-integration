@@ -1,5 +1,4 @@
 
-
 package org.exoplatform.salesforce.integ.connector.servlet;
 
 import java.io.BufferedReader;
@@ -10,6 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,9 +25,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import com.force.api.ApiConfig;
+import com.force.api.ApiSession;
+import com.force.api.ApiVersion;
+import com.force.api.ForceApi;
+
+
 
 public class OAuthServlet extends HttpServlet {
-    private static final long serialVersionUID = 1L;
+    public class OauthToken {
+    	
+
+	}
+
+	private static final long serialVersionUID = 1L;
 
     public static final String ACCESS_TOKEN = "ACCESS_TOKEN";
     private static final Log LOG = ExoLogger.getLogger(OAuthServlet.class);
@@ -40,6 +51,9 @@ public class OAuthServlet extends HttpServlet {
     private String authUrl      = null;
     private String tokenUrl     = null;
     private String tempOppID =null;
+    private String refreshtoken  = null;
+    public static String tk_url;
+    public static String tk_tok;
 
     public void init() throws ServletException {
 
@@ -48,8 +62,8 @@ public class OAuthServlet extends HttpServlet {
        /* will be set from portlet configuration*/
         
         
-	    clientId = "3MVG9Rd3qC6oMalW8IT9Z1uOefpz3T.jSverly4RwEddttWPoIxxapyvzNobT5WtYZoXD3dRrzJaMcfGHnMLy";
-	    clientSecret ="4518632485073221948";
+	    clientId = "3MVG9Rd3qC6oMalU6h9PyWK_07UERoFPmtwsBeSODWWKmNlNBBCBtpnnvHS3XD3dpIB7AXRLwl8iwMAPfzStu";
+	    clientSecret ="9140283238048111603";
 	    redirectUri = "https://zaoui:8443/salesforce-extension/oauth/_callback";
 	    
 	    
@@ -74,7 +88,8 @@ public class OAuthServlet extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+    	Cookie[] cookies = request.getCookies();
+		
     	LOG.info("Begin OAuth");
         tempOppID = (tempOppID==null) ?   request.getParameter("oppID"):tempOppID;
         String accessToken = (String) request.getSession().getAttribute(ACCESS_TOKEN);
@@ -93,7 +108,7 @@ public class OAuthServlet extends HttpServlet {
                 // we need to send the user to authorize
             	request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,tempOppID);
             	
-                response.sendRedirect(authUrl);
+                response.sendRedirect(authUrl+"&id="+tempOppID);
                 return;
             } else {
             	LOG.info("Auth successful - got callback");
@@ -113,6 +128,7 @@ public class OAuthServlet extends HttpServlet {
                 post.addParameter(RequestKeysConstants.CLIENT_ID_KEY, clientId);
                 post.addParameter(RequestKeysConstants.CLIENT_SECRET_KEY, clientSecret);
                 post.addParameter(RequestKeysConstants.REDIRECT_URI_KEY, redirectUri);
+               // post.addParameter(RequestKeysConstants.REDIRECT_URI_KEY, redirectUri);
                 
                 
                 
@@ -135,9 +151,43 @@ public class OAuthServlet extends HttpServlet {
 
 
 						instanceUrl = authResponse.getString(RequestKeysConstants.INSTANCE_URL);
+						boolean ist = false,tk=false;
+						 for(int i = 0; i < cookies.length; i++) { 
+					            Cookie cookie1 = cookies[i];
+					            if (cookie1.getName().equals("tk_ck_")) {
+					                
+					            	ist = true;
+					            }
+
+							if (cookie1.getName().equals("inst_ck_")) {
+
+								tk = true;
+							}
+					            
+					        } 
+						if (!tk) {
+							Cookie tk_cookie = new Cookie("tk_ck_", accessToken);
+							tk_cookie.setMaxAge(60 * 60); // 1 hour
+							tk_cookie.setPath("/portal");
+							response.addCookie(tk_cookie);
+						}
+						if (!ist) {
+						Cookie inst_cookie = new Cookie("inst_ck_",instanceUrl);
+						inst_cookie.setMaxAge(60*60); //1 hour
+						inst_cookie.setPath("/portal");
+						response.addCookie(inst_cookie);
+						}
 						
 
-						LOG.info("Got access token: " + accessToken);
+						initApi(request, accessToken, accessToken);
+						
+						
+						//QueryResult<Account> iniResult =
+
+						
+						
+						
+						
                     } catch (JSONException e) {
                         e.printStackTrace();
                         throw new ServletException(e);
@@ -159,6 +209,47 @@ public class OAuthServlet extends HttpServlet {
             request.getSession().setAttribute(RequestKeysConstants.INSTANCE_URL, instanceUrl);
         }
         request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID, request.getParameter("oppID"));
-        response.sendRedirect("/salesforce-extension/opp");
+
+        response.sendRedirect("/salesforce-extension/opp"+"?id="+tempOppID);
     }
+
+	public static ForceApi initApi(HttpServletRequest request, String accessToken,
+			String instanceUrl) {
+		ApiVersion apiVersion = ApiVersion.DEFAULT_VERSION;
+		ApiConfig c = new ApiConfig()
+		.setClientId("3MVG9Rd3qC6oMalU6h9PyWK_07UERoFPmtwsBeSODWWKmNlNBBCBtpnnvHS3XD3dpIB7AXRLwl8iwMAPfzStu")
+		.setClientSecret("9140283238048111603")
+		.setRedirectURI("https://zaoui:8443/salesforce-extension/oauth/_callback")
+		.setLoginEndpoint("https://login.salesforce.com")
+
+		.setApiVersion(apiVersion);
+		
+		
+		ApiSession s =  new ApiSession(accessToken,instanceUrl);
+		ForceApi api = new ForceApi(c,s);
+		/*api.getIdentity();
+		;
+		Opportunity opp = api.getSObject("Opportunity", request.getParameter("oppID")).as(Opportunity.class);
+		//ContentDocument doc = api.getSObject("Account", "00124000006Wqqe").as(ContentDocument.class);
+		String query=
+"SELECT OwnerId, SystemModstamp, Title, PublishStatus FROM ContentDocument";
+		QueryResult<ContentDocument> doc = api.query(query, ContentDocument.class);
+		doc.getTotalSize();
+		*/
+		return api;
+	}
+	
+	public static ForceApi initApiFromCookies(String accessToken,String instanceUrl) {
+		ApiVersion apiVersion = ApiVersion.DEFAULT_VERSION;
+		ApiConfig c = new ApiConfig()
+		.setClientId("3MVG9Rd3qC6oMalU6h9PyWK_07UERoFPmtwsBeSODWWKmNlNBBCBtpnnvHS3XD3dpIB7AXRLwl8iwMAPfzStu")
+		.setClientSecret("9140283238048111603")
+		.setRedirectURI("https://zaoui:8443/salesforce-extension/oauth/_callback")
+		.setLoginEndpoint("https://login.salesforce.com")
+		.setApiVersion(apiVersion);
+		ApiSession s =  new ApiSession(accessToken,instanceUrl);
+		ForceApi api = new ForceApi(c,s);
+		return api;
+	}
+	
 }

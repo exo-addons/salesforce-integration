@@ -14,12 +14,15 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
+import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.util.RequestKeysConstants;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.exoplatform.services.log.ExoLogger;
-import org.exoplatform.services.log.Log;
+
+import com.force.api.ForceApi;
 
 
 
@@ -51,11 +54,22 @@ public class OppServlet extends HttpServlet {
 
 		writer.write("We have an access token: " + accessToken + "\n"
 				+ "Using instance " + instanceUrl + "\n\n");
-
-
+   if(oppID==null)
+	   oppID=request.getParameter("id");
+   
 
 		String oppName = getOpportunityName(instanceUrl, accessToken,oppID, writer);
-		response.sendRedirect("/portal/private/rest/salesforce/create/"+oppName);
+		ForceApi api = OAuthServlet.initApi(request, accessToken, instanceUrl);
+		api.query("select Name from Opportunity where id="+ "\'"+oppID+"\' LIMIT 1", Opportunity.class);
+		//api.getSObject("Account", "00124000006Wqqe").as(Account.class);
+		 Opportunity opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
+		 String ammount = opp.getAmount().toString();
+		 String description= opp.getDescription();
+		 String isClosed =opp.getIsClosed().toString();
+		 String stageName =opp.getStageName().toString();
+		response.sendRedirect("/portal/private/rest/salesforce/create/"+oppName+"?ammount="+ammount+"&description="+description+"&isClosed="+isClosed+"&stageName="+stageName);
+
+		
 	}
 
 	private String  getOpportunityName(String instanceUrl, String accessToken,
@@ -96,14 +110,6 @@ public class OppServlet extends HttpServlet {
 
 					JSONArray results = response.getJSONArray("records");
 					 name =results.getJSONObject(0).getString("Name");
-
-			/*		for (int i = 0; i < results.length(); i++) {
-						writer.write( results.getJSONObject(i).getString("Name")
-								+ "\n");
-
-					}
-					writer.write("\n");
-					*/
 				} catch (JSONException e) {
 					
 					e.printStackTrace();
@@ -115,5 +121,7 @@ public class OppServlet extends HttpServlet {
 		}
 		return name;
 	}
+
+	
 
 }
