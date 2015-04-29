@@ -63,11 +63,12 @@ public class OppServlet extends HttpServlet {
 		api.query("select Name from Opportunity where id="+ "\'"+oppID+"\' LIMIT 1", Opportunity.class);
 		//api.getSObject("Account", "00124000006Wqqe").as(Account.class);
 		 Opportunity opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
-		 String ammount = opp.getAmount().toString();
+		 String ammount = (opp.getAmount()!=null)?opp.getAmount().toString():null;//not required can be null
+		 String closeDate =opp.getCloseDate().toString();//required
 		 String description= opp.getDescription();
 		 String isClosed =opp.getIsClosed().toString();
 		 String stageName =opp.getStageName().toString();
-		response.sendRedirect("/portal/private/rest/salesforce/create/"+oppName+"?ammount="+ammount+"&description="+description+"&isClosed="+isClosed+"&stageName="+stageName);
+		response.sendRedirect("/portal/private/rest/salesforce/create/"+oppName+"?ammount="+ammount+"&description="+description+"&isClosed="+isClosed+"&stageName="+stageName+"&closeDate="+closeDate);
 
 		
 	}

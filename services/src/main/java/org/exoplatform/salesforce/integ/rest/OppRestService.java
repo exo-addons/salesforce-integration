@@ -29,6 +29,7 @@ import org.exoplatform.services.rest.resource.ResourceContainer;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.manager.IdentityManager;
@@ -38,6 +39,8 @@ import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.service.rest.RestChecker;
 import org.exoplatform.social.service.rest.Util;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
 
 import com.force.api.ForceApi;
@@ -48,19 +51,22 @@ import com.force.api.QueryResult;
 public class OppRestService implements ResourceContainer { 
 	  OrganizationService orgService = (OrganizationService) PortalContainer.getInstance().getComponentInstanceOfType(OrganizationService.class);
 	    RepositoryService repositoryService = (RepositoryService) PortalContainer.getInstance().getComponentInstanceOfType(RepositoryService.class);
-		private DateTime CloseDate;
+		private boolean notAuTh=false;
+		//private DateTime CloseDate;
 	    private static final String portalContainerName = "portal";
 	    private static final String[] SUPPORTED_FORMATS = new String[]{"json"};
 
 
-	    @GET
+	    @SuppressWarnings("deprecation")
+		@GET
 	    @Path("create/{oppName}")
 	    public Response createOpp(@Context HttpServletRequest request,
 	                                      @PathParam("oppName") String opportunity,
 	                                      @QueryParam("ammount")String ammount,
 	                                      @QueryParam("description")String description,
 	                                      @QueryParam("isClosed")String isClosed,
-	                                      @QueryParam("stageName")String stageName) {
+	                                      @QueryParam("stageName")String stageName,
+	                                      @QueryParam("closeDate")String closeDate) {
 	    //	oppName+"?"+ammount+"?"+description+"?"+isClosed+"?"+stageName)
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
@@ -88,26 +94,61 @@ public class OppRestService implements ResourceContainer {
 
 			}
 			if(accesstoken!=null&&instance_url!=null){
+				notAuTh=true;
 				
 				ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
 				QueryResult<Opportunity> q=api.query("SELECT Amount,CloseDate,StageName,isClosed,Description FROM Opportunity where Name="+ "\'"+opportunity+"\' LIMIT 1", Opportunity.class);
 				if(q.getTotalSize()>0){
 					
-					ammount = q.getRecords().get(0).getAmount().toString();
-					description = q.getRecords().get(0).getDescription();
-					isClosed = q.getRecords().get(0).getIsClosed().toString();
-					CloseDate=q.getRecords().get(0).getCloseDate();
-					stageName = q.getRecords().get(0).getStageName().toString();
+					ammount = (q.getRecords().get(0).getAmount()!=null) ?q.getRecords().get(0).getAmount().toString():"Not defined";
+					description = (q.getRecords().get(0).getDescription()!=null)? q.getRecords().get(0).getDescription():"Not defined";
+					isClosed = (q.getRecords().get(0).getIsClosed()!=null)? q.getRecords().get(0).getIsClosed().toString():"Not defined";
+					closeDate= (q.getRecords().get(0).getCloseDate()!=null)? q.getRecords().get(0).getCloseDate().toString():"Not defined";
+					
+					if(closeDate!=null){
+					DateTimeFormatter dateFormat = DateTimeFormat
+							.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+					DateTime t =dateFormat.parseDateTime(closeDate);
+					closeDate =t.toString();
+					}
+					else
+					{
+					closeDate ="Not defined";
+					}
+					stageName = (q.getRecords().get(0).getStageName()!=null)? q.getRecords().get(0).getStageName().toString():"Not defined";
+					
 					
 				}
 			}
+		}
+		if(!notAuTh){
+			//if recieved "null" as string query param description and amount not defined(as not required field) by user
+			//will be modified
+			ammount = (!ammount.equals("null")) ?ammount:"Not defined";
+			description = (!description.equals("null"))? description:"Not defined";
+			isClosed = (isClosed!=null)? isClosed:"Not defined";
+			if(closeDate!=null){
+			DateTimeFormatter dateFormat = DateTimeFormat
+					.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+			DateTime t =dateFormat.parseDateTime(closeDate);
+			closeDate =t.toString();
+			}
+			else
+			{
+			closeDate ="NOT Defined";
+			}
+			stageName = (stageName!=null)? stageName:"Not defined";
+			
 		}
        	 String owner = sourceIdentity.getRemoteId();
             Space project_ = new Space();
             project_.setDisplayName(opportunity);
             project_.setPrettyName(opportunity);
             project_.setRegistration(Space.OPEN);
-            project_.setDescription(description);
+            if((description).equals("Not defined"))
+			project_.setDescription(opportunity);
+		    else
+			project_.setDescription(description);
             project_.setType(DefaultSpaceApplicationHandler.NAME);
             project_.setVisibility(Space.PUBLIC);
             project_.setRegistration(Space.VALIDATION);
@@ -116,13 +157,21 @@ public class OppRestService implements ResourceContainer {
             if (s != null) {
             	 activity.setUserId(sourceIdentity.getId());
                 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, s.getPrettyName(), false);
+                Profile oppProfile = spaceIdentity.getProfile();
+                oppProfile.setProperty("opportunityName", opportunity);
+                oppProfile.setProperty("description", description);
+                oppProfile.setProperty("CloseDate", closeDate);
+                oppProfile.setProperty("ammount", ammount);
+                oppProfile.setProperty("stageName", stageName);
+                Util.getIdentityManager(portalContainerName).saveProfile(oppProfile);
+                
+                
                 activity.setTitle("The opportunity: " +opportunity +" With description: "+description+ " and stage :"+stageName +" And ammount :" + ammount 
-                		+" has been imported to eXo");
+                		+": AND CLOSE DATE :"+closeDate+" has been imported to eXo");
                 activity.setType("Salesforce_Activity");
                 activity.setBody("The opportunity: " +opportunity +" descp: "+description+" has a stage :stageName" );
                 activityManager.saveActivityNoReturn(spaceIdentity, activity);
             } 
-          System.out.println(s.getPrettyName());
 
        
            // return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal/invitations").build();

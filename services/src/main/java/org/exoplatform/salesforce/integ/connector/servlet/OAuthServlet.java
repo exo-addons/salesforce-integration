@@ -209,8 +209,10 @@ public class OAuthServlet extends HttpServlet {
             request.getSession().setAttribute(RequestKeysConstants.INSTANCE_URL, instanceUrl);
         }
         request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID, request.getParameter("oppID"));
-
-        response.sendRedirect("/salesforce-extension/opp"+"?id="+tempOppID);
+        
+        String s =tempOppID;
+        tempOppID=null;
+        response.sendRedirect("/salesforce-extension/opp"+"?id="+s);
     }
 
 	public static ForceApi initApi(HttpServletRequest request, String accessToken,
