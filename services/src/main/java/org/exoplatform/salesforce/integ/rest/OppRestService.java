@@ -66,7 +66,7 @@ public class OppRestService implements ResourceContainer {
 	                                      @QueryParam("description")String description,
 	                                      @QueryParam("isClosed")String isClosed,
 	                                      @QueryParam("stageName")String stageName,
-	                                      @QueryParam("closeDate")String closeDate) {
+	                                      @QueryParam("closeDate")String closeDate) throws Exception {
 	    //	oppName+"?"+ammount+"?"+description+"?"+isClosed+"?"+stageName)
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
@@ -115,7 +115,7 @@ public class OppRestService implements ResourceContainer {
 					{
 					closeDate ="Not defined";
 					}
-					stageName = (q.getRecords().get(0).getStageName()!=null)? q.getRecords().get(0).getStageName().toString():"Not defined";
+					stageName = (q.getRecords().get(0).getStageName()!=null)? q.getRecords().get(0).getStageName().value().toString():"Not defined";
 					
 					
 				}

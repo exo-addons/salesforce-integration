@@ -86,5 +86,29 @@
                 </properties-param>
             </init-params>
         </component-plugin>
-    </external-component-plugins>               
+    </external-component-plugins> 
+    
+        <external-component-plugins>
+        <target-component>org.exoplatform.services.scheduler.JobSchedulerService</target-component>
+        <component-plugin>
+            <name>PeriodJob Plugin</name>
+            <set-method>addPeriodJob</set-method>
+            <type>org.exoplatform.services.scheduler.PeriodJob</type>
+            <description>period job configuration</description>
+            <init-params>
+                <properties-param>
+                    <name>job.info</name>
+                    <description>OpportunityCreateActivityJob executed periodically</description>
+                    <property name="jobName" value="OpportunityCreateActivityJob"/>
+                    <property name="groupName" value="OpportunityCreateActivityJob"/>
+                    <property name="job"
+                              value="org.exoplatform.salesforce.integ.job.OpportunityCreateActivityJob"/>
+                    <property name="repeatCount" value="0"/>
+                    <property name="period" value="60000"/><!-- 1 mins--> 
+                    <property name="startTime" value="+0"/>
+                    <property name="endTime" value=""/>
+                </properties-param>
+            </init-params>
+        </component-plugin>
+    </external-component-plugins>              
 </configuration>

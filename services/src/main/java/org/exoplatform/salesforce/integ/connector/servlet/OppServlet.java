@@ -59,7 +59,11 @@ public class OppServlet extends HttpServlet {
    
 
 		String oppName = getOpportunityName(instanceUrl, accessToken,oppID, writer);
-		ForceApi api = OAuthServlet.initApi(request, accessToken, instanceUrl);
+		try {
+		ForceApi api;
+	
+			api = OAuthServlet.initApi(request, accessToken, instanceUrl);
+
 		api.query("select Name from Opportunity where id="+ "\'"+oppID+"\' LIMIT 1", Opportunity.class);
 		//api.getSObject("Account", "00124000006Wqqe").as(Account.class);
 		 Opportunity opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
@@ -67,9 +71,12 @@ public class OppServlet extends HttpServlet {
 		 String closeDate =opp.getCloseDate().toString();//required
 		 String description= opp.getDescription();
 		 String isClosed =opp.getIsClosed().toString();
-		 String stageName =opp.getStageName().toString();
+		 String stageName =opp.getStageName().value().toString();
 		response.sendRedirect("/portal/private/rest/salesforce/create/"+oppName+"?ammount="+ammount+"&description="+description+"&isClosed="+isClosed+"&stageName="+stageName+"&closeDate="+closeDate);
-
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 
