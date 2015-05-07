@@ -16,6 +16,7 @@ import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.manager.IdentityManager;
@@ -44,7 +45,8 @@ public class OpportunityCreateActivityJob implements Job {
 	private static final Log LOG = ExoLogger.getLogger(OpportunityCreateActivityJob.class);
 	SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
     ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
-	private  final AtomicBoolean notStarted = new AtomicBoolean();
+	//used to check if there is an already job running 
+    private  final AtomicBoolean notStarted = new AtomicBoolean();
 
 	@Override
 	public void execute(JobExecutionContext context)
@@ -84,9 +86,12 @@ public class OpportunityCreateActivityJob implements Job {
 							 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, sp.getPrettyName(), false);
 							 if(opp.get(i).getDescription()!=null&&spaceIdentity.getProfile().getProperty("description")!=null&&!spaceIdentity.getProfile().getProperty("description").equals("Not defined"))
 							 { 
-								 if(opp.get(i).getDescription().equals(spaceIdentity.getProfile().getProperty("description")))
+								 if(!opp.get(i).getDescription().equals(spaceIdentity.getProfile().getProperty("description")))
 								 {
 									 LOG.info("for descri"+opp.get(i).getName());
+									    Profile oppProfile = spaceIdentity.getProfile();
+						                oppProfile.setProperty("description", opp.get(i).getDescription());
+						                Util.getIdentityManager("portal").saveProfile(oppProfile);
 								 ExoSocialActivity activity = new ExoSocialActivityImpl();
 								// activity.set
 								 activity.setTitle("The description of the opportunity has been updated to :"+opp.get(i).getDescription());
@@ -105,6 +110,9 @@ public class OpportunityCreateActivityJob implements Job {
 										 if(!t.toString().equals(spaceIdentity.getProfile().getProperty("CloseDate")))
 										 {
 											 LOG.info("for close date"+opp.get(i).getName());
+											    Profile oppProfile = spaceIdentity.getProfile();
+								                oppProfile.setProperty("CloseDate", t.toString());
+								                Util.getIdentityManager("portal").saveProfile(oppProfile);
 										 ExoSocialActivity activity = new ExoSocialActivityImpl();
 										// activity.set
 										 activity.setTitle("The close date of the opportunity has been updated to :"+t.toString());
@@ -122,6 +130,9 @@ public class OpportunityCreateActivityJob implements Job {
 								 if(!opp.get(i).getStageName().value().equals(spaceIdentity.getProfile().getProperty("stageName")))
 								 {
 									 LOG.info("for stage "+opp.get(i).getName());
+									    Profile oppProfile = spaceIdentity.getProfile();
+						                oppProfile.setProperty("stageName",opp.get(i) .getStageName().value().toString());
+						                Util.getIdentityManager("portal").saveProfile(oppProfile);
 								 ExoSocialActivity activity = new ExoSocialActivityImpl();
 								// activity.set
 								 activity.setTitle("The stage of the opportunity has been updated to :"+opp.get(i).getStageName().value());
@@ -162,6 +173,9 @@ public class OpportunityCreateActivityJob implements Job {
 			notStarted.set(false);
 		} catch (Exception e) {
 			LOG.error("e opportunity update job", e);
+			
+		}
+		finally {
 			notStarted.set(true);
 		}
 		
