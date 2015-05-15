@@ -1,5 +1,8 @@
 package org.exoplatform.salesforce.integ.rest;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.Cookie;
@@ -16,10 +19,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URI;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.salesforce.integ.connector.entity.ContentDocumentLink;
+import org.exoplatform.salesforce.integ.connector.entity.ContentVersion;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet;
 import org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage;
@@ -42,6 +53,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
+import org.mortbay.log.Log;
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
@@ -245,6 +257,103 @@ public class OppRestService implements ResourceContainer {
 	            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("An internal error has occured").build();
 	        }
 	    }
+	    
+	    /**
+	     * get document contents of specific opportunity From SF  and store them into exo space drive
+	     */  
+	    
+	    @GET
+	    @Path("get/contentdocuments/{oppID}")
+	    public Response createOpp(@Context HttpServletRequest request,
+	    		 @PathParam("oppID")String oppID) throws Exception {
+	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
+	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
+	    	 IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
+	    	 Cookie[] cookies = request.getCookies();
+	            String accesstoken=null;
+	            String instance_url=null;
+	    	 ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
+	    	 ExoSocialActivity activity = new ExoSocialActivityImpl();
+            if (sourceIdentity == null)
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+
+			for (int i = 0; i < cookies.length; i++) {
+				Cookie cookie1 = cookies[i];
+				if (cookie1.getName().equals("tk_ck_")) {
+
+					accesstoken = cookie1.getValue();
+				}
+
+				if (cookie1.getName().equals("inst_ck_")) {
+
+					instance_url = cookie1.getValue();
+				}
+			}
+
+			if(accesstoken!=null&&instance_url!=null){
+			
+				List<String> oppDocID = new ArrayList<String>();
+				ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
+				//SELECT Id, ContentDocumentId FROM ContentDocumentLink WHERE LinkedEntityId = '00624000003onYq'
+				String qq="SELECT Id, ContentDocumentId  FROM ContentDocumentLink where LinkedEntityId="+ "\'"+oppID+"\' LIMIT 100";
+				QueryResult<ContentDocumentLink> queryDocID=api.query(qq, ContentDocumentLink.class);
+				if(queryDocID.getTotalSize()>0){
+					List<ContentDocumentLink> contentsLink = queryDocID.getRecords();
+					Iterator<ContentDocumentLink> contentsLinkIt = contentsLink.iterator();
+					while (contentsLinkIt.hasNext()) {
+						String id =contentsLinkIt.next().getContentDocumentId();
+						oppDocID.add(id);
+						Log.info("content id--->:"+id);
+					}
+					
+					for (int i = 0; i < oppDocID.size(); i++) {
+						String contentid=oppDocID.get(i);
+						String qq2="SELECT  PathOnClient, FileType, VersionData  FROM ContentVersion where ContentDocumentId="+ "\'"+contentid+"\' LIMIT 1";
+						
+						QueryResult<ContentVersion> qdoc=api.query(qq2, ContentVersion.class);
+						if(qdoc.getTotalSize()>0){
+							Log.info(qdoc.getRecords().get(0).getVersionDataUrl());
+							HttpClient	httpclient1= new HttpClient();
+							String VD=qdoc.getRecords().get(0).getVersionDataUrl();
+							String path=qdoc.getRecords().get(0).getPathOnClient();
+							GetMethod get = new GetMethod(instance_url+ VD);
+							get.setRequestHeader("Authorization", "OAuth " + accesstoken);
+							httpclient1.executeMethod(get);
+							if (get.getStatusCode() == HttpStatus.SC_OK) {
+                                 // download resource of the opportunity to local 
+								// will be stored in eXo JCR(should create specific drive or folder for SF content) in next commits
+ 								 byte[] bodyByte =	get.getResponseBody();
+								 FileOutputStream fos = new FileOutputStream("/home/exo/java/consulting/00-Sales-force-integ/repo-FRremote/salesforce-integration/"+path);
+								 fos.write(bodyByte);
+								 fos.close();
+
+
+							}
+							
+						}
+						
+					}
+					
+
+					
+				}
+				
+
+		/*
+                activity.setTitle("");
+   
+                activity.setType("Salesforce_Activity");
+                activity.setBody("The opportunity" );
+                activityManager.saveActivityNoReturn( activity);
+                */
+            } 
+
+       
+           // return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal/invitations").build();
+            return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
+           // return Response.ok("Created").build();
+	    }
+	    
 	    
 	    
 	    
