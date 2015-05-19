@@ -41,6 +41,7 @@ import org.exoplatform.salesforce.integ.connector.entity.ContentDocumentLink;
 import org.exoplatform.salesforce.integ.connector.entity.ContentVersion;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet;
+import org.exoplatform.salesforce.integ.util.Utils;
 import org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage;
 import org.exoplatform.services.jcr.RepositoryService;
 import org.exoplatform.services.jcr.ext.common.SessionProvider;
@@ -63,6 +64,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
 import org.mortbay.log.Log;
+
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
@@ -443,8 +445,8 @@ public class OppRestService implements ResourceContainer {
             } 
 
        
-           // return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal/invitations").build();
-            return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
+           // portal/g/:spaces:united_oil_office_portable_generators/united_oil_office_portable_generators
+            return Response.seeOther(URI.create(Util.getBaseUrl() + "/"+Utils.getSpaceUrl(oppName)+"/documents")).build();
            // return Response.ok("Created").build();
 	    }
 	    
