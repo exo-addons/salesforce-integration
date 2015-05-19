@@ -72,7 +72,7 @@ public class OppServlet extends HttpServlet {
 		 String description= opp.getDescription();
 		 String isClosed =opp.getIsClosed().toString();
 		 String stageName =opp.getStageName().value().toString();
-		response.sendRedirect("/portal/private/rest/salesforce/create/"+oppName+"?ammount="+ammount+"&description="+description+"&isClosed="+isClosed+"&stageName="+stageName+"&closeDate="+closeDate);
+		response.sendRedirect("/portal/private/rest/salesforce/create/"+oppName+"?oppID="+oppID+"&ammount="+ammount+"&description="+description+"&isClosed="+isClosed+"&stageName="+stageName+"&closeDate="+closeDate);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

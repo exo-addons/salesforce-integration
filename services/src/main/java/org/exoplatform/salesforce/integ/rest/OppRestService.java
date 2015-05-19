@@ -1,10 +1,14 @@
 package org.exoplatform.salesforce.integ.rest;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.Session;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -27,6 +32,9 @@ import java.net.URI;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+import org.exoplatform.commons.utils.MimeTypeResolver;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.salesforce.integ.connector.entity.ContentDocumentLink;
@@ -35,6 +43,7 @@ import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet;
 import org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage;
 import org.exoplatform.services.jcr.RepositoryService;
+import org.exoplatform.services.jcr.ext.common.SessionProvider;
 import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.rest.resource.ResourceContainer;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
@@ -74,6 +83,7 @@ public class OppRestService implements ResourceContainer {
 	    @Path("create/{oppName}")
 	    public Response createOpp(@Context HttpServletRequest request,
 	                                      @PathParam("oppName") String opportunity,
+	                                      @QueryParam("oppID") String oppID,
 	                                      @QueryParam("ammount")String ammount,
 	                                      @QueryParam("description")String description,
 	                                      @QueryParam("isClosed")String isClosed,
@@ -170,6 +180,7 @@ public class OppRestService implements ResourceContainer {
             	 activity.setUserId(sourceIdentity.getId());
                 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, s.getPrettyName(), false);
                 Profile oppProfile = spaceIdentity.getProfile();
+                oppProfile.setProperty("oppID", oppID);
                 oppProfile.setProperty("opportunityName", opportunity);
                 oppProfile.setProperty("description", description);
                 oppProfile.setProperty("CloseDate", closeDate);
@@ -263,12 +274,15 @@ public class OppRestService implements ResourceContainer {
 	     */  
 	    
 	    @GET
-	    @Path("get/contentdocuments/{oppID}")
+	    @Path("get/contentdocuments/{oppName}")
 	    public Response createOpp(@Context HttpServletRequest request,
-	    		 @PathParam("oppID")String oppID) throws Exception {
+	    		 @PathParam("oppName")String oppName,
+	    		 @QueryParam("workspaceName") String workspaceName,
+	    		 @QueryParam("nodepath") String nodepath) throws Exception {
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
 	    	 IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
+	    	 boolean firstCall=false;
 	    	 Cookie[] cookies = request.getCookies();
 	            String accesstoken=null;
 	            String instance_url=null;
@@ -291,10 +305,16 @@ public class OppRestService implements ResourceContainer {
 			}
 
 			if(accesstoken!=null&&instance_url!=null){
-			
+			Space opp=spaceService.getSpaceByPrettyName(oppName);
+			if(opp!=null){
 				List<String> oppDocID = new ArrayList<String>();
 				ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
 				//SELECT Id, ContentDocumentId FROM ContentDocumentLink WHERE LinkedEntityId = '00624000003onYq'
+				 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, opp.getPrettyName(), false);
+				 String oppID =spaceIdentity.getProfile().getProperty("oppID").toString();
+				//try to get the opportunity from the stored id
+				
+			
 				String qq="SELECT Id, ContentDocumentId  FROM ContentDocumentLink where LinkedEntityId="+ "\'"+oppID+"\' LIMIT 100";
 				QueryResult<ContentDocumentLink> queryDocID=api.query(qq, ContentDocumentLink.class);
 				if(queryDocID.getTotalSize()>0){
@@ -305,7 +325,7 @@ public class OppRestService implements ResourceContainer {
 						oppDocID.add(id);
 						Log.info("content id--->:"+id);
 					}
-					
+					 nodepath = StringUtils.substringAfter(nodepath, "/");
 					for (int i = 0; i < oppDocID.size(); i++) {
 						String contentid=oppDocID.get(i);
 						String qq2="SELECT  PathOnClient, FileType, VersionData  FROM ContentVersion where ContentDocumentId="+ "\'"+contentid+"\' LIMIT 1";
@@ -323,20 +343,94 @@ public class OppRestService implements ResourceContainer {
                                  // download resource of the opportunity to local 
 								// will be stored in eXo JCR(should create specific drive or folder for SF content) in next commits
  								 byte[] bodyByte =	get.getResponseBody();
-								 FileOutputStream fos = new FileOutputStream("/home/exo/java/consulting/00-Sales-force-integ/repo-FRremote/salesforce-integration/"+path);
-								 fos.write(bodyByte);
-								 fos.close();
+ 								SessionProvider sessionProvider = SessionProvider.createSystemProvider();
+ 								String workspace = (workspaceName!=null) ? workspaceName : "collaboration"; 				
+ 								Session session = sessionProvider.getSession(workspace,
+ 					                    repositoryService.getCurrentRepository());
+ 								
+ 								try {
+									
+									///Groups/spaces/united_oil_office_portable_generators/Documents/united_oil_office_portable_generators/xxxx.png
+									
 
+										Node rootNode = session.getRootNode().getNode(nodepath);
+									 // Node file = rootNode.addNode("file", "nt:file");
+									 if (!rootNode.hasNode(oppName)) {
+									    rootNode.addNode(oppName, "nt:folder");
+									   rootNode.save();
+									}
+
+									//check if the doc already imported from SLF to same path
+									Node oppNode = rootNode.getNode(oppName);
+									Node oppIDs = null;
+									if(!oppNode.hasNode("oppIDs"))
+									{
+										oppIDs =oppNode.addNode("oppIDs","nt:folder");
+									
+										oppIDs.canAddMixin("exo:hiddenable");
+										oppIDs.addMixin("exo:hiddenable");
+										oppNode.save();
+										
+										
+									}
+									oppIDs =oppNode.getNode("oppIDs");
+									
+										if(oppIDs.getNodes().getSize()==0){
+											oppIDs.addNode(contentid,"nt:folder");
+											oppIDs.save();
+											firstCall=true;
+										}
+										
+										//dirty quick check , will be replaced
+										
+										 NodeIterator nodeIter = oppIDs.getNodes() ;
+										 while(nodeIter.hasNext()) {
+											 Node id = nodeIter.nextNode() ;
+											 if(!id.getName().equals(contentid)||firstCall){
+													String baseName = FilenameUtils.getBaseName(path);
+													MimeTypeResolver resolver = new MimeTypeResolver();
+													String type = resolver.getMimeType(path);
+
+													Node fileNode = null;
+													 if(!oppNode.hasNode(path)){
+													fileNode = oppNode.addNode(path, "nt:file");
+													
+													Node jcrContent = fileNode.addNode("jcr:content", "nt:resource");
+													jcrContent.setProperty("jcr:data",new ByteArrayInputStream(bodyByte));
+													jcrContent.setProperty("jcr:lastModified",Calendar.getInstance());
+													jcrContent.setProperty("jcr:encoding", "UTF-8");
+													jcrContent.setProperty("jcr:mimeType", type);
+													 }
+													 if(!firstCall&&!oppIDs.hasNode(contentid))
+													 {
+													    oppIDs.addNode(contentid,"nt:folder");
+													    oppIDs.save();
+													 }
+													 firstCall=false;
+													oppNode.save();
+													session.save();
+												 }
+												 
+											 }
+										
+									
+
+							         
+	
+									session.save();
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 
 							}
-							
-						}
-						
-					}
-					
 
-					
+						}
+					}
+
 				}
+
+			}
 				
 
 		/*
