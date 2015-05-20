@@ -30,7 +30,7 @@ https://salesforce:8443/salesforce-extension/oauth/_callback
 ![Add Connected app to Salesforce](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/oauth.png)
 
 5. Select OAuth Scopes : "full access"
-6.Click Save. The Consumer Key is created and displayed, and the Consumer Secret is created (click the link to reveal it)
+6.Click Save. The Consumer Key and the Consumer Secret are created (click the link to reveal it)Save.
 
 ![Consumer Secret and Key](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/key.png)
 
@@ -63,6 +63,8 @@ Add the new button to the Opportunity page layout:
 2. Select Buttons.
 3. Drag and drop the newly created custom Button to the "Opportunity Detail" section (next the default standard ones "edit", "save" and "clone")
 4. Save.
+
+![Add Custom Button](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/Opportunity_layout_edit.png)
 
 Now if you go back to the opportunities list page and if you select any opportunity you will see that your custom button was succefully added to the layout.
 Clicking to that button will create an eXo space with some mapped opportunity information.
