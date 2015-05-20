@@ -4,11 +4,11 @@ Setup the Application
 Configure your server to support SSL:
 -----------------------
 
-1. Generate server key using Java keytool:
+. Generate server key using Java keytool:
 
 keytool -genkey -alias alias -keypass mypassword -keystore keystore.key -storepass mypassword
 
-2. Enable ssl into your platform_instalation/conf/server.xml
+. Enable ssl into your platform_instalation/conf/server.xml
 
 ```
 <Connector SSLEnabled="true" clientAuth="false" keystoreFile="/path_to_key/keystore.key"
