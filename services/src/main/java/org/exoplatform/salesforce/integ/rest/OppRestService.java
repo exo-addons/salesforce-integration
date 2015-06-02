@@ -65,7 +65,6 @@ import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
 import org.mortbay.log.Log;
 
-
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
 
@@ -227,6 +226,9 @@ public class OppRestService implements ResourceContainer {
 	            System.out.println(clientSecret);
 	            System.out.println(redirectUri);
 	            configurationInfoStorage.saveConfigurationInfo(clientId, clientSecret, redirectUri);
+	            System.setProperty("oauth.salesforce.clientId", clientId);
+	            System.setProperty("oauth.salesforce.clientSecret",clientSecret);
+	            System.setProperty("oauth.salesforce.redirectUri", redirectUri);
 
 	            JSONObject jsonGlobal = new JSONObject();
 	            jsonGlobal.put("message"," conf saved");
@@ -254,11 +256,9 @@ public class OppRestService implements ResourceContainer {
 	           
 
 	            
-	            String clientId=configurationInfoStorage.getConfigurationInfo().getClientId();
-	            String clientSecret =configurationInfoStorage.getConfigurationInfo().getClientSecret();
-	            String redirectUri=configurationInfoStorage.getConfigurationInfo().getRedirectUri();
-	            
-	            configurationInfoStorage.getConfigurationInfo().getClientId();
+	            String clientId= System.getProperty("oauth.salesforce.clientId");
+	            String clientSecret =System.getProperty("oauth.salesforce.clientSecret");
+	            String redirectUri =System.getProperty("oauth.salesforce.redirectUri");
 	            json.put("clientId",clientId);
 	            json.put("clientSecret",clientSecret);
 	            json.put("redirectUri",redirectUri);

@@ -58,20 +58,26 @@ public class OAuthServlet extends HttpServlet {
 	public void init() throws ServletException {
 		try {
 			// it's better to use filter in next step for all auth request
-			if (System.getProperty("oauth.salesforce.clientId") == null) {
+			clientId=System.getProperty("oauth.salesforce.clientId");
+			if (System.getProperty("oauth.salesforce.clientId")==null) {
 				clientId = "3MVG9Rd3qC6oMalU6h9PyWK_07UERoFPmtwsBeSODWWKmNlNBBCBtpnnvHS3XD3dpIB7AXRLwl8iwMAPfzStu";
 				System.setProperty("oauth.salesforce.clientId", clientId);
 
 			}
+			
+			clientSecret =System.getProperty("oauth.salesforce.clientSecret") ;
 			if (System.getProperty("oauth.salesforce.clientSecret") == null) {
 				clientSecret = "9140283238048111603";
 				System.setProperty("oauth.salesforce.clientSecret",clientSecret);
 			}
+			
+			redirectUri=System.getProperty("oauth.salesforce.redirectUri");
 			if (System.getProperty("oauth.salesforce.redirectUri") == null) {
 				redirectUri = "https://zaoui:8443/salesforce-extension/oauth/_callback";
 				System.setProperty("oauth.salesforce.redirectUri", redirectUri);
 
 			}
+			
 
 			environment = RequestKeysConstants.SF_PROD;
 
