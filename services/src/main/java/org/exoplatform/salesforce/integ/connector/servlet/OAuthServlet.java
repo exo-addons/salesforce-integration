@@ -53,6 +53,7 @@ public class OAuthServlet extends HttpServlet {
 	public static String tk_url;
 	public static String tk_tok;
 	public static String environment;
+	private String initialURI =null;
 	
 
 	public void init() throws ServletException {
@@ -99,6 +100,9 @@ public class OAuthServlet extends HttpServlet {
 		LOG.info("Begin OAuth");
 		tempOppID = (tempOppID == null) ? request.getParameter("oppID")
 				: tempOppID;
+		initialURI = (initialURI == null) ? request.getParameter("initialURI")
+				: initialURI;
+		
 		String accessToken = (String) request.getSession().getAttribute(
 				ACCESS_TOKEN);
 		// request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
@@ -219,9 +223,22 @@ public class OAuthServlet extends HttpServlet {
 		request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
 				request.getParameter("oppID"));
 
-		String s = tempOppID;
-		tempOppID = null;
+		
+		if(initialURI!=null){
+			String tempInitialURI=initialURI;
+			initialURI=null; //re-inti
+			response.sendRedirect(tempInitialURI+"?status=oauth");
+			
+		}
+		if(tempOppID!=null)
+		{
+			String s = tempOppID;
+			tempOppID = null;
 		response.sendRedirect("/salesforce-extension/opp" + "?id=" + s);
+		}
+		//else
+			//response.sendRedirect("/portal");
+			
 	}
 
 	public static ForceApi initApi(HttpServletRequest request,

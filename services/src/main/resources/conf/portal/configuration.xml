@@ -110,5 +110,30 @@
                 </properties-param>
             </init-params>
         </component-plugin>
-    </external-component-plugins>              
+    </external-component-plugins>
+    	<external-component-plugins>
+		<target-component>org.exoplatform.web.filter.ExtensibleFilter</target-component>
+		<component-plugin profiles="all">
+			<name>My Spaces Filter</name>
+			<set-method>addFilterDefinitions</set-method>
+			<type>org.exoplatform.web.filter.FilterDefinitionPlugin</type>
+			<init-params>
+				<object-param>
+					<name>My spaces Filter</name>
+					<object type="org.exoplatform.web.filter.FilterDefinition">
+						<field name="filter">
+							<object type="org.exoplatform.salesforce.integ.connector.filter.OAuthFilter" />
+						</field>
+						<field name="patterns">
+							<collection type="java.util.ArrayList" item-type="java.lang.String">
+								<value>
+									<string>.*:spaces:.*</string>
+								</value>
+							</collection>
+						</field>
+					</object>
+				</object-param>
+			</init-params>
+		</component-plugin>
+	</external-component-plugins>              
 </configuration>

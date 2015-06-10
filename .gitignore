@@ -40,3 +40,7 @@ release.properties
 # Misc
 *.swp
 transaction.log
+
+# rebel files
+rebel.xml
+rebel-remote.xml

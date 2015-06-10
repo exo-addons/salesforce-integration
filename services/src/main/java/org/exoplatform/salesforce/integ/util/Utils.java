@@ -1,5 +1,7 @@
 package org.exoplatform.salesforce.integ.util;
 
+import javax.servlet.http.Cookie;
+
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
@@ -42,6 +44,28 @@ public class Utils {
 			baseSpaceURL.append(space.getPrettyName());
 		}
 		return baseSpaceURL.toString();
+	}
+	
+	public static boolean hasCookies(Cookie[] cookies) {
+		// Cookie[] cookies = request.getCookies();
+		String accesstoken = null;
+		String instance_url = null;
+		for (int i = 0; i < cookies.length; i++) {
+			Cookie cookie1 = cookies[i];
+
+			if (cookie1.getName().equals("tk_ck_")) {
+
+				accesstoken = cookie1.getValue();
+			}
+
+			if (cookie1.getName().equals("inst_ck_")) {
+
+				instance_url = cookie1.getValue();
+			}
+		}
+		if (accesstoken != null && instance_url != null)
+			return true;
+		return false;
 	}
 
 }

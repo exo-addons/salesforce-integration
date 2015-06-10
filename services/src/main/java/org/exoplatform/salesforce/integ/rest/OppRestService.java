@@ -449,6 +449,38 @@ public class OppRestService implements ResourceContainer {
             return Response.seeOther(URI.create(Util.getBaseUrl() + "/"+Utils.getSpaceUrl(oppName)+"/documents")).build();
            // return Response.ok("Created").build();
 	    }
+
+	    
+	    
+	    // this rest service will be used to get update from SF chatter, auto send ajax update periodically  
+	@GET
+	@Path("update")
+	public Response update(@Context HttpServletRequest request)
+			throws Exception {
+
+		Identity sourceIdentity = Util
+				.getAuthenticatedUserIdentity(portalContainerName);
+		MediaType mediaType = RestChecker.checkSupportedFormat("json",
+				SUPPORTED_FORMATS);
+
+		try {
+			if (sourceIdentity == null) {
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+			}
+
+			JSONObject jsonGlobal = new JSONObject();
+			jsonGlobal.put("message", " update");
+			return Response.ok(jsonGlobal.toString(), mediaType).build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("An internal error has occured").build();
+		}
+	}
+	    
+	    
+
+	    
 	    
 	    
 	    
