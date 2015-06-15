@@ -37,8 +37,10 @@ import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.utils.MimeTypeResolver;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.salesforce.integ.connector.entity.AggregateResult;
 import org.exoplatform.salesforce.integ.connector.entity.ContentDocumentLink;
 import org.exoplatform.salesforce.integ.connector.entity.ContentVersion;
+import org.exoplatform.salesforce.integ.connector.entity.OpportunityFeed;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet;
 import org.exoplatform.salesforce.integ.util.Utils;
@@ -73,24 +75,25 @@ import com.force.api.QueryResult;
 public class OppRestService implements ResourceContainer { 
 	  OrganizationService orgService = (OrganizationService) PortalContainer.getInstance().getComponentInstanceOfType(OrganizationService.class);
 	    RepositoryService repositoryService = (RepositoryService) PortalContainer.getInstance().getComponentInstanceOfType(RepositoryService.class);
-		private boolean notAuTh=false;
 		//private DateTime CloseDate;
 	    private static final String portalContainerName = "portal";
 	    private static final String[] SUPPORTED_FORMATS = new String[]{"json"};
 
 
 	    @SuppressWarnings("deprecation")
-		@GET
-	    @Path("create/{oppName}")
-	    public Response createOpp(@Context HttpServletRequest request,
-	                                      @PathParam("oppName") String opportunity,
-	                                      @QueryParam("oppID") String oppID,
-	                                      @QueryParam("ammount")String ammount,
-	                                      @QueryParam("description")String description,
-	                                      @QueryParam("isClosed")String isClosed,
-	                                      @QueryParam("stageName")String stageName,
-	                                      @QueryParam("closeDate")String closeDate) throws Exception {
-	    //	oppName+"?"+ammount+"?"+description+"?"+isClosed+"?"+stageName)
+	@GET
+	@Path("create/{oppID}")
+	public Response createOpp(
+			@Context HttpServletRequest request,
+			@PathParam("oppID") String oppID,
+			@QueryParam("oppName") String oppName) throws Exception {
+
+		String ammount = null;
+		String description = null;
+		String isClosed = null;
+		String stageName = null;
+		String closeDate = null;
+		String permId=null;
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
 	    	 IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
@@ -101,8 +104,6 @@ public class OppRestService implements ResourceContainer {
 	    	 ExoSocialActivity activity = new ExoSocialActivityImpl();
             if (sourceIdentity == null)
 				return Response.status(Response.Status.UNAUTHORIZED).build();
-            //if request param are lost try to query from request name
-		if (stageName == null) {
 			for (int i = 0; i < cookies.length; i++) {
 				Cookie cookie1 = cookies[i];
 				if (cookie1.getName().equals("tk_ck_")) {
@@ -114,20 +115,23 @@ public class OppRestService implements ResourceContainer {
 
 					instance_url = cookie1.getValue();
 				}
-
 			}
+			
 			if(accesstoken!=null&&instance_url!=null){
-				notAuTh=true;
 				
 				ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
-				QueryResult<Opportunity> q=api.query("SELECT Amount,CloseDate,StageName,isClosed,Description FROM Opportunity where Name="+ "\'"+opportunity+"\' LIMIT 1", Opportunity.class);
-				if(q.getTotalSize()>0){
-					
-					ammount = (q.getRecords().get(0).getAmount()!=null) ?q.getRecords().get(0).getAmount().toString():"Not defined";
-					description = (q.getRecords().get(0).getDescription()!=null)? q.getRecords().get(0).getDescription():"Not defined";
-					isClosed = (q.getRecords().get(0).getIsClosed()!=null)? q.getRecords().get(0).getIsClosed().toString():"Not defined";
-					closeDate= (q.getRecords().get(0).getCloseDate()!=null)? q.getRecords().get(0).getCloseDate().toString():"Not defined";
-					
+				 Opportunity opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
+				 String qq="SELECT COUNT(Id) FROM OpportunityFeed where ParentId="+ "\'"+oppID+"\'";
+					QueryResult<AggregateResult> totalFeed=api.query(qq, AggregateResult.class);
+					//count the total feed at create deal room time on the opp 
+					String TotalOppFeed=totalFeed.getRecords().get(0).getexpr0();
+					//permId is the permanent id of the opportunity will be used to check update 
+				    permId=opp.getId();
+					ammount = (opp.getAmount()!=null) ?opp.getAmount().toString():"Not defined";
+					description = (opp.getDescription()!=null)? opp.getDescription():"Not defined";
+					isClosed = (opp.getIsClosed()!=null)? opp.getIsClosed().toString():"Not defined";
+					closeDate= (opp.getCloseDate()!=null)? opp.getCloseDate().toString():"Not defined";
+					oppName= description = (opp.getName()!=null)? opp.getName():"Not defined";
 					if(closeDate!=null){
 					DateTimeFormatter dateFormat = DateTimeFormat
 							.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -138,38 +142,19 @@ public class OppRestService implements ResourceContainer {
 					{
 					closeDate ="Not defined";
 					}
-					stageName = (q.getRecords().get(0).getStageName()!=null)? q.getRecords().get(0).getStageName().value().toString():"Not defined";
+					stageName = (opp.getStageName()!=null)?opp.getStageName().value().toString():"Not defined";
 					
 					
-				}
-			}
-		}
-		if(!notAuTh){
-			//if recieved "null" as string query param description and amount not defined(as not required field) by user
-			//will be modified
-			ammount = (!ammount.equals("null")) ?ammount:"Not defined";
-			description = (!description.equals("null"))? description:"Not defined";
-			isClosed = (isClosed!=null)? isClosed:"Not defined";
-			if(closeDate!=null){
-			DateTimeFormatter dateFormat = DateTimeFormat
-					.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-			DateTime t =dateFormat.parseDateTime(closeDate);
-			closeDate =t.toString();
-			}
-			else
-			{
-			closeDate ="NOT Defined";
-			}
-			stageName = (stageName!=null)? stageName:"Not defined";
-			
-		}
+				
+		
+
        	 String owner = sourceIdentity.getRemoteId();
             Space project_ = new Space();
-            project_.setDisplayName(opportunity);
-            project_.setPrettyName(opportunity);
+            project_.setDisplayName(oppName);
+            project_.setPrettyName(oppName);
             project_.setRegistration(Space.OPEN);
             if((description).equals("Not defined"))
-			project_.setDescription(opportunity);
+			project_.setDescription(oppName);
 		    else
 			project_.setDescription(description);
             project_.setType(DefaultSpaceApplicationHandler.NAME);
@@ -181,26 +166,27 @@ public class OppRestService implements ResourceContainer {
             	 activity.setUserId(sourceIdentity.getId());
                 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, s.getPrettyName(), false);
                 Profile oppProfile = spaceIdentity.getProfile();
-                oppProfile.setProperty("oppID", oppID);
-                oppProfile.setProperty("opportunityName", opportunity);
+                oppProfile.setProperty("oppID", permId);
+                oppProfile.setProperty("opportunityName", oppName);
                 oppProfile.setProperty("description", description);
                 oppProfile.setProperty("CloseDate", closeDate);
                 oppProfile.setProperty("ammount", ammount);
                 oppProfile.setProperty("stageName", stageName);
+                //store the total feed of the opportunity as property of space profile
+                //any change on total means need update in chatter that need to be push to eXo
+                oppProfile.setProperty("nbOppFeed", TotalOppFeed);
                 Util.getIdentityManager(portalContainerName).saveProfile(oppProfile);
                 
                 
-                activity.setTitle("The opportunity: " +opportunity +" With description: "+description+ " and stage :"+stageName +" And ammount :" + ammount 
+                activity.setTitle("The opportunity: " +oppName +" With description: "+description+ " and stage :"+stageName +" And ammount :" + ammount 
                 		+": AND CLOSE DATE :"+closeDate+" has been imported to eXo");
                 activity.setType("Salesforce_Activity");
-                activity.setBody("The opportunity: " +opportunity +" descp: "+description+" has a stage :stageName" );
+                activity.setBody("The opportunity: " +oppName +" descp: "+description+" has a stage :stageName" );
                 activityManager.saveActivityNoReturn(spaceIdentity, activity);
             } 
-
+		}
        
-           // return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal/invitations").build();
             return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
-           // return Response.ok("Created").build();
 	    }
 	    
 	    
@@ -453,10 +439,12 @@ public class OppRestService implements ResourceContainer {
 	    
 	    
 	    // this rest service will be used to get update from SF chatter, auto send ajax update periodically  
-	@GET
-	@Path("update")
-	public Response update(@Context HttpServletRequest request)
-			throws Exception {
+	    @POST
+	    @Path("update")
+	    @Consumes({MediaType.APPLICATION_JSON})
+	    public Response update(@Context HttpServletRequest request,@Context HttpServletResponse response,@Context UriInfo uriInfo,
+	                                 Map<String,String> space) throws Exception {
+		
 
 		Identity sourceIdentity = Util
 				.getAuthenticatedUserIdentity(portalContainerName);
@@ -467,7 +455,38 @@ public class OppRestService implements ResourceContainer {
 			if (sourceIdentity == null) {
 				return Response.status(Response.Status.UNAUTHORIZED).build();
 			}
+			  String oppid=space.get("oppid");
+			
+			Cookie[] cookies = request.getCookies();
+			request.getRequestURI();
+			String accesstoken=null;
+			String instance_url=null;
+						for (int i = 0; i < cookies.length; i++) {
+				Cookie cookie1 = cookies[i];
+				if (cookie1.getName().equals("tk_ck_")) {
 
+					accesstoken = cookie1.getValue();
+				}
+
+				if (cookie1.getName().equals("inst_ck_")) {
+
+					instance_url = cookie1.getValue();
+				}
+
+			}
+			if(accesstoken!=null&&accesstoken!=null){
+			ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
+			//SELECT COUNT(Id) FROM OpportunityFeed where parentId="oppid"
+			String qq="SELECT COUNT(Id) FROM OpportunityFeed where ParentId="+ "\'"+oppid+"\'";
+			
+			//SELECT COUNT(Id) FROM OpportunityFeed
+			QueryResult<AggregateResult> totalFeed=api.query(qq, AggregateResult.class);
+			
+			
+			int nbfeed=Integer.parseInt(totalFeed.getRecords().get(0).getexpr0());
+			// check if nb feed was changed nbfeed >oppProfile.gettProperty("nbOppFeed"); means new update
+			//so got the update , push to exo and store the new nbfeed to the space profile 
+			}
 			JSONObject jsonGlobal = new JSONObject();
 			jsonGlobal.put("message", " update");
 			return Response.ok(jsonGlobal.toString(), mediaType).build();

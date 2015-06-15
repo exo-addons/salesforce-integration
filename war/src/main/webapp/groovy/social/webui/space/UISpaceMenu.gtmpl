@@ -55,6 +55,7 @@ System.out.println(spaceName);
   //rcontext.getJavascriptManager().require("SHARED/salesforce", "salesforce").addScripts();
   def isOpp=false;
    isOpp= org.exoplatform.salesforce.integ.util.Utils.iSOpportunitySpace(spaceName);
+   def oppid= org.exoplatform.salesforce.integ.util.Utils.getOpportunityId(spaceName);
   if(isOpp)
   {
    rcontext.getJavascriptManager().loadScriptResource("salesforce");
@@ -108,6 +109,11 @@ System.out.println(spaceName);
   <%
     String activityStreamLabel = _ctx.appRes(uicomponent.getId() + ".label.ActivityStream");
   %>
+  
+  <% if(isOpp)
+  
+  %>
+  <input type="hidden" name="spaceName" id="spaceName" value="<%=oppid%>" />
   
   <ul class="nav nav-tabs spaceMenuTab" id="spaceMenuTab" style="visibility: hidden;">
     <li class="$selectedClazz">

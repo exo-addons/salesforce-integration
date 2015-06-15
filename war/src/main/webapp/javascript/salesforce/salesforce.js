@@ -1,8 +1,10 @@
 $(document).ready(function() {
-	var conf;
+	var space;
+	space = new Object();
+	space.oppid = $("#oppid").val();
     setInterval(function() {
         $.ajax({
-        	 url: "/rest/private/salesforce/update",
+        	 url: "/rest/private/salesforce/update?"+space.oppid,
              cache: true,
             success: function() {
                 //handle success

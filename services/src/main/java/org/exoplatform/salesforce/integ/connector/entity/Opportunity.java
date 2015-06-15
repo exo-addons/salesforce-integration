@@ -15,6 +15,14 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class Opportunity {
 	 
+	
+	private String id;
+
+	@JsonProperty("Id")
+	public String getId() {
+		return this.id;
+	}
+	
 	private String Name;
 
 	@JsonProperty("Name")

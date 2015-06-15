@@ -183,14 +183,14 @@ public class OAuthServlet extends HttpServlet {
 						if (!tk) {
 							Cookie tk_cookie = new Cookie("tk_ck_", accessToken);
 							tk_cookie.setMaxAge(60 * 60); // 1 hour
-							tk_cookie.setPath("/portal");
+							tk_cookie.setPath("/");
 							response.addCookie(tk_cookie);
 						}
 						if (!ist) {
 							Cookie inst_cookie = new Cookie("inst_ck_",
 									instanceUrl);
 							inst_cookie.setMaxAge(60 * 60); // 1 hour
-							inst_cookie.setPath("/portal");
+							inst_cookie.setPath("/");
 							response.addCookie(inst_cookie);
 						}
 

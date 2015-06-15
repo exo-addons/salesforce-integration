@@ -60,10 +60,7 @@ public class OpportunityCreateActivityJob implements Job {
 			 
 			while (iter.hasNext()&&!notStarted.get()) {
 				notStarted.set(true);
-				LOG.info("------------------->"+notStarted.get());
 				Entry<String, UserConfig> mEntry = iter.next();
-				//LOG.info(mEntry.getKey() + " : " + mEntry.getValue().getAccesstoken());
-				
 				ApiVersion apiVersion = ApiVersion.DEFAULT_VERSION;
 				ApiConfig c = new ApiConfig()
 				.setClientId(System.getProperty("oauth.salesforce.clientId"))
@@ -73,8 +70,9 @@ public class OpportunityCreateActivityJob implements Job {
 				.setApiVersion(apiVersion);
 				
 				ApiSession s =  new ApiSession(mEntry.getValue().getAccesstoken(),mEntry.getValue().getInstanceUrl());
-				QueryResult<Opportunity> q= new ForceApi(c,s).query("SELECT Name,Amount,CloseDate,StageName,isClosed,Description FROM Opportunity LIMIT 1000", Opportunity.class);
+				QueryResult<Opportunity> q= new ForceApi(c,s).query("SELECT Id,Name,Amount,CloseDate,StageName,isClosed,Description FROM Opportunity LIMIT 1000", Opportunity.class);
 				List<Opportunity> opp =q.getRecords();
+				for(int index =0; index < opp.size();index ++)
 				if(opp.size()>0){
 					for(int i=0;i<opp.size();i++){
 						Space sp =spaceService.getSpaceByDisplayName(opp.get(i).getName());
@@ -84,6 +82,8 @@ public class OpportunityCreateActivityJob implements Job {
 				                return;
 				            }
 							 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, sp.getPrettyName(), false);
+							 if(spaceIdentity.getProfile().getProperty("oppID")!=null&& !opp.get(i).getId().equals(spaceIdentity.getProfile().getProperty("oppID").toString()))
+								 continue;
 							 if(opp.get(i).getDescription()!=null&&spaceIdentity.getProfile().getProperty("description")!=null&&!spaceIdentity.getProfile().getProperty("description").equals("Not defined"))
 							 { 
 								 if(!opp.get(i).getDescription().equals(spaceIdentity.getProfile().getProperty("description")))

@@ -67,5 +67,42 @@ public class Utils {
 			return true;
 		return false;
 	}
+	
+	
+	public static String[] getCookies(Cookie[] cookies) {
+		// Cookie[] cookies = request.getCookies();
+
+		String accesstoken = null;
+		String instance_url = null;
+		String[] tks = { accesstoken, instance_url };
+		for (int i = 0; i < cookies.length; i++) {
+			Cookie cookie1 = cookies[i];
+
+			if (cookie1.getName().equals("tk_ck_")) {
+
+				accesstoken = cookie1.getValue();
+			}
+
+			if (cookie1.getName().equals("inst_ck_")) {
+
+				instance_url = cookie1.getValue();
+			}
+		}
+		return tks;
+
+	}
+	
+	public static String getOpportunityId(String spaceName){
+		SpaceService spaceService = Util.getSpaceService(portalContainerName);
+		Space space=spaceService.getSpaceByPrettyName(spaceName);
+		if(space!=null){
+			 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
+			 if(spaceIdentity.getProfile().getProperty("oppID")!=null)
+				 return spaceIdentity.getProfile().getProperty("oppID").toString();
+		}
+		return null;
+		
+	}
+	
 
 }
