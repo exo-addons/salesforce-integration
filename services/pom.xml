@@ -100,12 +100,12 @@
 	<dependency>
 		<groupId>org.codehaus.jackson</groupId>
 		<artifactId>jackson-core-asl</artifactId>
-		<version>[1.9.1,1.9.7]</version>
+		<version>1.9.7</version>
 	</dependency>
 	<dependency>
 		<groupId>org.codehaus.jackson</groupId>
 		<artifactId>jackson-mapper-asl</artifactId>
-		<version>[1.9.1,1.9.7]</version>
+		<version>1.9.7</version>
 	</dependency>
 	 <!--  <url>http://jesperfj.github.com/force-rest-api/repository/</url>  -->
 	<dependency>

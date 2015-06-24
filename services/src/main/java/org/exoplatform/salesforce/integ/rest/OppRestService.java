@@ -1,34 +1,7 @@
 package org.exoplatform.salesforce.integ.rest;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.Session;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.net.URI;
-
+import com.force.api.ForceApi;
+import com.force.api.QueryResult;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -37,14 +10,15 @@ import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.utils.MimeTypeResolver;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivity;
+import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivityBuilder;
 import org.exoplatform.salesforce.integ.connector.entity.AggregateResult;
 import org.exoplatform.salesforce.integ.connector.entity.ContentDocumentLink;
 import org.exoplatform.salesforce.integ.connector.entity.ContentVersion;
-import org.exoplatform.salesforce.integ.connector.entity.OpportunityFeed;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet;
-import org.exoplatform.salesforce.integ.util.Utils;
 import org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage;
+import org.exoplatform.salesforce.integ.util.Utils;
 import org.exoplatform.services.jcr.RepositoryService;
 import org.exoplatform.services.jcr.ext.common.SessionProvider;
 import org.exoplatform.services.organization.OrganizationService;
@@ -67,8 +41,20 @@ import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
 import org.mortbay.log.Log;
 
-import com.force.api.ForceApi;
-import com.force.api.QueryResult;
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.Session;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.util.*;
 
 @Path("/salesforce")
 
@@ -176,11 +162,17 @@ public class OppRestService implements ResourceContainer {
                 //any change on total means need update in chatter that need to be push to eXo
                 oppProfile.setProperty("nbOppFeed", TotalOppFeed);
                 Util.getIdentityManager(portalContainerName).saveProfile(oppProfile);
-                
-                
-                activity.setTitle("The opportunity: " +oppName +" With description: "+description+ " and stage :"+stageName +" And ammount :" + ammount 
-                		+": AND CLOSE DATE :"+closeDate+" has been imported to eXo");
-                activity.setType("Salesforce_Activity");
+
+
+                activity.setTitle(oppName);
+
+				activity.setType(UISalesforceActivity.ACTIVITY_TYPE);
+				Map<String, String> templateParams = new HashMap<String, String>();
+				templateParams.put(UISalesforceActivityBuilder.DESCRIPTION_PARAM,description);
+				templateParams.put(UISalesforceActivityBuilder.STAGE_PARAM,stageName);
+				templateParams.put(UISalesforceActivityBuilder.CLOSEDATE_PARAM,closeDate);
+				templateParams.put(UISalesforceActivityBuilder.AMOUNT_PARAM,ammount);
+				activity.setTemplateParams(templateParams);
                 activity.setBody("The opportunity: " +oppName +" descp: "+description+" has a stage :stageName" );
                 activityManager.saveActivityNoReturn(spaceIdentity, activity);
             } 

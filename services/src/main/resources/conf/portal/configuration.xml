@@ -135,5 +135,26 @@
 				</object-param>
 			</init-params>
 		</component-plugin>
-	</external-component-plugins>              
+	</external-component-plugins>
+
+    <!-- configure activies plugin -->
+    <external-component-plugins>
+        <target-component>org.exoplatform.webui.ext.UIExtensionManager</target-component>
+        <component-plugin>
+            <name>add.salesforce.activity.plugin</name>
+            <set-method>registerUIExtensionPlugin</set-method>
+            <type>org.exoplatform.webui.ext.UIExtensionPlugin</type>
+            <init-params>
+                <object-param>
+                    <name>Salesforce Summary Activity</name>
+                    <object type="org.exoplatform.social.webui.activity.UIActivityExtension">
+                        <field name="type"><string>org.exoplatform.social.webui.activity.BaseUIActivity</string></field>
+                        <field name="name"><string>SALESFORCE_ACTIVITY</string></field>
+                        <field name="component"><string>org.exoplatform.salesforce.integ.component.activity.UISalesforceActivity</string></field>
+                        <field name="activityBuiderClass"><string>org.exoplatform.salesforce.integ.component.activity.UISalesforceActivityBuilder</string></field>
+                    </object>
+                </object-param>
+            </init-params>
+        </component-plugin>
+    </external-component-plugins>
 </configuration>

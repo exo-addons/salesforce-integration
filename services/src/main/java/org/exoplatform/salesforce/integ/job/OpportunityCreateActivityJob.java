@@ -1,12 +1,9 @@
 package org.exoplatform.salesforce.integ.job;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.force.api.*;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivityBuilder;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.connector.entity.UserConfig;
 import org.exoplatform.salesforce.integ.rest.UserService;
@@ -14,7 +11,6 @@ import org.exoplatform.salesforce.integ.util.RequestKeysConstants;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
-import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
@@ -30,11 +26,11 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import com.force.api.ApiConfig;
-import com.force.api.ApiSession;
-import com.force.api.ApiVersion;
-import com.force.api.ForceApi;
-import com.force.api.QueryResult;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -72,6 +68,7 @@ public class OpportunityCreateActivityJob implements Job {
 				ApiSession s =  new ApiSession(mEntry.getValue().getAccesstoken(),mEntry.getValue().getInstanceUrl());
 				QueryResult<Opportunity> q= new ForceApi(c,s).query("SELECT Id,Name,Amount,CloseDate,StageName,isClosed,Description FROM Opportunity LIMIT 1000", Opportunity.class);
 				List<Opportunity> opp =q.getRecords();
+				boolean paramsUpdated = false;
 				for(int index =0; index < opp.size();index ++)
 				if(opp.size()>0){
 					for(int i=0;i<opp.size();i++){
@@ -84,20 +81,28 @@ public class OpportunityCreateActivityJob implements Job {
 							 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, sp.getPrettyName(), false);
 							 if(spaceIdentity.getProfile().getProperty("oppID")!=null&& !opp.get(i).getId().equals(spaceIdentity.getProfile().getProperty("oppID").toString()))
 								 continue;
+
+							ExoSocialActivity firstactivity = activityManager.getActivitiesOfSpaceWithListAccess(spaceIdentity).loadOlder(spaceIdentity.getProfile().getCreatedTime(),1).get(0);
+							Map<String, String> templateParams = firstactivity.getTemplateParams();
+
 							 if(opp.get(i).getDescription()!=null&&spaceIdentity.getProfile().getProperty("description")!=null&&!spaceIdentity.getProfile().getProperty("description").equals("Not defined"))
-							 { 
+							 {
 								 if(!opp.get(i).getDescription().equals(spaceIdentity.getProfile().getProperty("description")))
 								 {
+									 if(templateParams.containsKey(UISalesforceActivityBuilder.DESCRIPTION_PARAM)) {
+										 templateParams.put(UISalesforceActivityBuilder.DESCRIPTION_PARAM,opp.get(i).getDescription());
+										 paramsUpdated = true;
+									 }
 									 LOG.info("for descri"+opp.get(i).getName());
 									    Profile oppProfile = spaceIdentity.getProfile();
 						                oppProfile.setProperty("description", opp.get(i).getDescription());
 						                Util.getIdentityManager("portal").saveProfile(oppProfile);
-								 ExoSocialActivity activity = new ExoSocialActivityImpl();
+								 /*ExoSocialActivity activity = new ExoSocialActivityImpl();
 								// activity.set
 								 activity.setTitle("The description of the opportunity has been updated to :"+opp.get(i).getDescription());
-					                activity.setType("Salesforce_Activity");
+									activity.setType(UISalesforceActivity.ACTIVITY_TYPE);
 					                activity.setBody("The description of the opportunity has been updated to :"+opp.get(i).getDescription());
-					                activityManager.saveActivityNoReturn(spaceIdentity, activity);
+					                activityManager.saveActivityNoReturn(spaceIdentity, activity);*/
 								 }
 							 }
 							 
@@ -109,16 +114,20 @@ public class OpportunityCreateActivityJob implements Job {
 										//t.toString().equals(spaceIdentity.getProfile().getProperty("CloseDate"));
 										 if(!t.toString().equals(spaceIdentity.getProfile().getProperty("CloseDate")))
 										 {
+											 if(templateParams.containsKey(UISalesforceActivityBuilder.CLOSEDATE_PARAM)) {
+												 templateParams.put(UISalesforceActivityBuilder.CLOSEDATE_PARAM,t.toString());
+												 paramsUpdated = true;
+											 }
 											 LOG.info("for close date"+opp.get(i).getName());
 											    Profile oppProfile = spaceIdentity.getProfile();
 								                oppProfile.setProperty("CloseDate", t.toString());
 								                Util.getIdentityManager("portal").saveProfile(oppProfile);
-										 ExoSocialActivity activity = new ExoSocialActivityImpl();
+										 /*ExoSocialActivity activity = new ExoSocialActivityImpl();
 										// activity.set
 										 activity.setTitle("The close date of the opportunity has been updated to :"+t.toString());
-							                activity.setType("Salesforce_Activity");
+											activity.setType(UIDefaultActivity.ACTIVITY_TYPE);
 							                activity.setBody("The close date of the opportunity has been updated to :"+t.toString());
-							                activityManager.saveActivityNoReturn(spaceIdentity, activity);
+							                activityManager.saveActivityNoReturn(spaceIdentity, activity);*/
 										 }
 										
 									}
@@ -129,16 +138,20 @@ public class OpportunityCreateActivityJob implements Job {
 							 {
 								 if(!opp.get(i).getStageName().value().equals(spaceIdentity.getProfile().getProperty("stageName")))
 								 {
+									 if(templateParams.containsKey(UISalesforceActivityBuilder.STAGE_PARAM)) {
+										 templateParams.put(UISalesforceActivityBuilder.STAGE_PARAM,opp.get(i) .getStageName().value().toString());
+										 paramsUpdated = true;
+									 }
 									 LOG.info("for stage "+opp.get(i).getName());
 									    Profile oppProfile = spaceIdentity.getProfile();
 						                oppProfile.setProperty("stageName",opp.get(i) .getStageName().value().toString());
 						                Util.getIdentityManager("portal").saveProfile(oppProfile);
-								 ExoSocialActivity activity = new ExoSocialActivityImpl();
+								 /*ExoSocialActivity activity = new ExoSocialActivityImpl();
 								// activity.set
 								 activity.setTitle("The stage of the opportunity has been updated to :"+opp.get(i).getStageName().value());
-					                activity.setType("Salesforce_Activity");
+									activity.setType(UIDefaultActivity.ACTIVITY_TYPE);
 					                activity.setBody("The stage of the opportunity has been updated to :"+opp.get(i).getStageName().value());
-					                activityManager.saveActivityNoReturn(spaceIdentity, activity);
+					                activityManager.saveActivityNoReturn(spaceIdentity, activity);*/
 								 }
 								 
 							 }
@@ -149,15 +162,23 @@ public class OpportunityCreateActivityJob implements Job {
 							 { 
 								 if(!opp.get(i).getAmount().toString().equals(spaceIdentity.getProfile().getProperty("ammount")))
 								 {
-								 ExoSocialActivity activity = new ExoSocialActivityImpl();
+									 if(templateParams.containsKey(UISalesforceActivityBuilder.AMOUNT_PARAM)) {
+										 templateParams.put(UISalesforceActivityBuilder.AMOUNT_PARAM,opp.get(i) .getAmount().toString());
+										 paramsUpdated = true;
+									 }
+								 /*ExoSocialActivity activity = new ExoSocialActivityImpl();
 								// activity.set
 								 activity.setTitle("The Amount of the opportunity has been updated to :"+opp.get(i).getAmount());
-					                activity.setType("Salesforce_Activity");
+									activity.setType(UIDefaultActivity.ACTIVITY_TYPE);
 					                activity.setBody("The Amount of the opportunity has been updated to :"+opp.get(i).getAmount());
-					                activityManager.saveActivityNoReturn(spaceIdentity, activity);
+					                activityManager.saveActivityNoReturn(spaceIdentity, activity);*/
 								 }
 							 }
-							
+							if(paramsUpdated) {
+								firstactivity.setTemplateParams(templateParams);
+								activityManager.updateActivity(firstactivity);
+								paramsUpdated = false;
+							}
 						}
 					}
 					
