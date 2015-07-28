@@ -97,9 +97,11 @@ Add Apex triggers
 
 1- Add the base URL of eXo site as a Remote Site
  
- NB: Only DNS are accepted, IP numbers can not be used.
+ NB: Due to Salesforce restrictions:
+    - Only DNS are accepted, IP numbers can not be used.
+    - The SSL certificate must be valid otherwise it will not be permitted. As workaround, use HTTP instead as it's possible to use both HTTP and HTTPS in the same server.  
  
- ![Remote Site](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/remote_site.png)
+ ![Remote Site](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/remote_site.png) 
 
 2- Create an Apex class that will make the Rest call:
 

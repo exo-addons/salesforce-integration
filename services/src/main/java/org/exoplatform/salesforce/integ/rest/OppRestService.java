@@ -27,6 +27,7 @@ import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
+import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.manager.IdentityManager;
@@ -35,6 +36,7 @@ import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.service.rest.RestChecker;
 import org.exoplatform.social.service.rest.Util;
+import org.exoplatform.social.webui.activity.UIDefaultActivity;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -149,7 +151,7 @@ public class OppRestService implements ResourceContainer {
             project_.setPriority(Space.INTERMEDIATE_PRIORITY);
             Space s= spaceService.createSpace(project_, owner);
 
-			//spaceService.addMember(s,"salesforce");
+			spaceService.addMember(s,"salesforce");
 
             if (s != null) {
             	 activity.setUserId(sourceIdentity.getId());
@@ -193,7 +195,18 @@ public class OppRestService implements ResourceContainer {
 				@QueryParam("newName") String newName) throws Exception {
 			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
 			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
+			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
+			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 			Space space = spaceService.getSpaceByDisplayName(oldName);
+			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
+			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
+			ExoSocialActivity firstactivity = activityManager.getActivitiesOfSpaceWithListAccess(spaceIdentity).load(0,1)[0];
+			ExoSocialActivity newcomment = new ExoSocialActivityImpl();
+			newcomment.setType(UIDefaultActivity.ACTIVITY_TYPE);
+			newcomment.setUserId(salesforceIdentity.getId());
+			newcomment.setTitle("Name changed from "+oldName+" to "+newName);
+			newcomment.setBody("Name changed from "+oldName+" to "+newName);
+			activityManager.saveComment(firstactivity,newcomment);
 			return Response.ok("comment added", mediaType).build();
 		}
 	    @POST
