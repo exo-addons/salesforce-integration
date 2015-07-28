@@ -92,6 +92,67 @@ The `oauth.salesforce.clientSecret` parameter is the `client Secret`
 are generated when setup the connected application to sales force see Setup the Application section
 The `oauth.salesforce.redirectUri` parameter is the `redirect Uri` used for OAuth flows to pass an access token to query the salesforce from exo server
 
+Add Apex triggers
+-----------------
+
+1- Add the base URL of eXo site as a Remote Site
+ 
+ NB: Only DNS are accepted, IP numbers can not be used.
+ 
+ ![Remote Site](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/remote_site.png)
+
+2- Create an Apex class that will make the Rest call:
+
+![Apex Class](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/apex_class.png)
+```
+public class HttpCallout {
+ 
+// Pass in the endpoint to be used using the string url
+   @future(callout=true)
+   public static void getContent(String url) {
+ 
+// Instantiate a new http object
+    Http h = new Http();
+ 
+// Instantiate a new HTTP request, specify the method (GET) as well as the endpoint
+    HttpRequest req = new HttpRequest();
+    req.setEndpoint(url);
+    req.setMethod('GET');
+ 
+// Send the request
+    h.send(req);
+  }
+}
+```
+3- Create the Trigger on the correspanding object.
+
+ e.g:
+```
+trigger mytrigger on Opportunity (after update) {
+    //List<String> oldvalues = new List<String>();
+    //List<String> newvalues = new List<String>();
+    String parameters = '';
+    for (Opportunity opp : Trigger.new) {
+        // Access the "old" record by its ID in Trigger.oldMap
+        Opportunity oldOpp = Trigger.oldMap.get(opp.Id);
+        
+            //oldvalues.add(oldOpp.Id); 
+            //oldvalues.add(oldOpp.Name);
+            //newvalues.add(opp.Name);  
+        parameters += 'oldName='+EncodingUtil.urlEncode(oldOpp.Name, 'UTF-8');
+        parameters += '&newName='+EncodingUtil.urlEncode(opp.Name, 'UTF-8');
+        if(oldOpp.stageName != opp.stageName) {
+            parameters += '&oldstageName='+oldOpp.stageName;
+            parameters += '&newstageName='+opp.stageName;
+        }        
+        if(oldOpp.Amount != opp.Amount) {
+            parameters += '&oldamount='+oldOpp.Amount;
+            parameters += '&newamount='+opp.Amount;
+        }
+        HttpCallout.getContent('http://serverName:8080/rest/salesforce/addupdatecomment/'+opp.Id+'?'+parameters);
+    }
+}
+```
 
 uses case:
 ===============

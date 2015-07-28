@@ -18,11 +18,21 @@ package org.exoplatform.salesforce.integ.component.activity;
 
 import org.exoplatform.social.webui.activity.BaseUIActivity;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
+import org.exoplatform.webui.config.annotation.EventConfig;
 import org.exoplatform.webui.core.lifecycle.UIFormLifecycle;
 
 @ComponentConfig(
         lifecycle = UIFormLifecycle.class,
-        template = "classpath:groovy/social/webui/activity/UISalesforceActivity.gtmpl"
+        template = "classpath:groovy/social/webui/activity/UISalesforceActivity.gtmpl",
+        events = {
+        @EventConfig(listeners = BaseUIActivity.ToggleDisplayCommentFormActionListener.class),
+        @EventConfig(listeners = BaseUIActivity.LikeActivityActionListener.class),
+        @EventConfig(listeners = BaseUIActivity.LoadLikesActionListener.class),
+        @EventConfig(listeners = BaseUIActivity.SetCommentListStatusActionListener.class),
+        @EventConfig(listeners = BaseUIActivity.PostCommentActionListener.class),
+        @EventConfig(listeners = BaseUIActivity.DeleteActivityActionListener.class),
+        @EventConfig(listeners = BaseUIActivity.DeleteCommentActionListener.class)
+}
 )
 public class UISalesforceActivity extends BaseUIActivity {
 

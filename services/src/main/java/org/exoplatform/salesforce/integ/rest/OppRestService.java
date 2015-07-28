@@ -147,7 +147,10 @@ public class OppRestService implements ResourceContainer {
             project_.setVisibility(Space.PUBLIC);
             project_.setRegistration(Space.VALIDATION);
             project_.setPriority(Space.INTERMEDIATE_PRIORITY);
-           Space s= spaceService.createSpace(project_, owner);
+            Space s= spaceService.createSpace(project_, owner);
+
+			//spaceService.addMember(s,"salesforce");
+
             if (s != null) {
             	 activity.setUserId(sourceIdentity.getId());
                 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, s.getPrettyName(), false);
@@ -180,8 +183,19 @@ public class OppRestService implements ResourceContainer {
        
             return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
 	    }
-	    
-	    
+
+		@GET
+		@Path("addupdatecomment/{oppID}")
+		public Response addUpdateComment(
+				@Context HttpServletRequest request,
+				@PathParam("oppID") String oppID,
+				@QueryParam("oldName") String oldName,
+				@QueryParam("newName") String newName) throws Exception {
+			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
+			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
+			Space space = spaceService.getSpaceByDisplayName(oldName);
+			return Response.ok("comment added", mediaType).build();
+		}
 	    @POST
 	    @Path("config")
 	    @Consumes({MediaType.APPLICATION_JSON})
