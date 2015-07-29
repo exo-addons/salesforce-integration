@@ -1,18 +1,9 @@
 package org.exoplatform.salesforce.integ.connector.servlet;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.force.api.ApiConfig;
+import com.force.api.ApiSession;
+import com.force.api.ApiVersion;
+import com.force.api.ForceApi;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -26,10 +17,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import com.force.api.ApiConfig;
-import com.force.api.ApiSession;
-import com.force.api.ApiVersion;
-import com.force.api.ForceApi;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URLEncoder;
 
 public class OAuthServlet extends HttpServlet {
 	public class OauthToken {
@@ -105,12 +99,13 @@ public class OAuthServlet extends HttpServlet {
 		
 		String accessToken = (String) request.getSession().getAttribute(
 				ACCESS_TOKEN);
+		String instanceUrl = (String) request.getSession().getAttribute(
+				RequestKeysConstants.INSTANCE_URL);
 		// request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
 		// request.getParameter("oppID"));
 
-		if (accessToken == null) {
+		if (accessToken == null || instanceUrl == "") {
 
-			String instanceUrl = null;
 			// request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
 			// request.getParameter("oppID"));
 
@@ -166,38 +161,7 @@ public class OAuthServlet extends HttpServlet {
 
 						instanceUrl = authResponse
 								.getString(RequestKeysConstants.INSTANCE_URL);
-						boolean ist = false, tk = false;
-						for (int i = 0; i < cookies.length; i++) {
-							Cookie cookie1 = cookies[i];
-							if (cookie1.getName().equals("tk_ck_")) {
-
-								ist = true;
-							}
-
-							if (cookie1.getName().equals("inst_ck_")) {
-
-								tk = true;
-							}
-
-						}
-						if (!tk) {
-							Cookie tk_cookie = new Cookie("tk_ck_", accessToken);
-							tk_cookie.setMaxAge(60 * 60); // 1 hour
-							tk_cookie.setPath("/");
-							response.addCookie(tk_cookie);
-						}
-						if (!ist) {
-							Cookie inst_cookie = new Cookie("inst_ck_",
-									instanceUrl);
-							inst_cookie.setMaxAge(60 * 60); // 1 hour
-							inst_cookie.setPath("/");
-							response.addCookie(inst_cookie);
-						}
-
 						initApi(request, accessToken, instanceUrl);
-
-						// QueryResult<Account> iniResult =
-
 					} catch (JSONException e) {
 						e.printStackTrace();
 						throw new ServletException(e);
@@ -213,12 +177,43 @@ public class OAuthServlet extends HttpServlet {
 				}
 			}
 
+			// QueryResult<Account> iniResult =
+
+
+
 			request.getSession().setAttribute(ACCESS_TOKEN, accessToken);
 			// request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
 			// request.getParameter("oppID"));
 
 			request.getSession().setAttribute(
 					RequestKeysConstants.INSTANCE_URL, instanceUrl);
+		}
+		boolean ist = false, tk = false;
+		for (int i = 0; i < cookies.length; i++) {
+			Cookie cookie1 = cookies[i];
+			if (cookie1.getName().equals("tk_ck_")) {
+
+				tk = true;
+			}
+
+			if (cookie1.getName().equals("inst_ck_")) {
+
+				ist = true;
+			}
+
+		}
+		if (!tk) {
+			Cookie tk_cookie = new Cookie("tk_ck_", accessToken);
+			tk_cookie.setMaxAge(60 * 60); // 1 hour
+			tk_cookie.setPath("/");
+			response.addCookie(tk_cookie);
+		}
+		if (!ist) {
+			Cookie inst_cookie = new Cookie("inst_ck_",
+					instanceUrl);
+			inst_cookie.setMaxAge(60 * 60); // 1 hour
+			inst_cookie.setPath("/");
+			response.addCookie(inst_cookie);
 		}
 		request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
 				request.getParameter("oppID"));

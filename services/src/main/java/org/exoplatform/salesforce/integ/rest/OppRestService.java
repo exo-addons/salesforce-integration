@@ -166,7 +166,6 @@ public class OppRestService implements ResourceContainer {
                 //store the total feed of the opportunity as property of space profile
                 //any change on total means need update in chatter that need to be push to eXo
                 oppProfile.setProperty("nbOppFeed", TotalOppFeed);
-                Util.getIdentityManager(portalContainerName).saveProfile(oppProfile);
 
 
                 activity.setTitle(oppName);
@@ -180,6 +179,10 @@ public class OppRestService implements ResourceContainer {
 				activity.setTemplateParams(templateParams);
                 activity.setBody("The opportunity: " +oppName +" descp: "+description+" has a stage :stageName" );
                 activityManager.saveActivityNoReturn(spaceIdentity, activity);
+
+				oppProfile.setProperty("firstsalesforceactivity",activity.getId());
+				Util.getIdentityManager(portalContainerName).saveProfile(oppProfile);
+
             } 
 		}
        
@@ -199,8 +202,9 @@ public class OppRestService implements ResourceContainer {
 			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 			Space space = spaceService.getSpaceByDisplayName(oldName);
 			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
+			Profile oppProfile = spaceIdentity.getProfile();
 			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
-			ExoSocialActivity firstactivity = activityManager.getActivitiesOfSpaceWithListAccess(spaceIdentity).load(0,1)[0];
+			ExoSocialActivity firstactivity = activityManager.getActivity(oppProfile.getProperty("firstsalesforceactivity").toString());
 			ExoSocialActivity newcomment = new ExoSocialActivityImpl();
 			newcomment.setType(UIDefaultActivity.ACTIVITY_TYPE);
 			newcomment.setUserId(salesforceIdentity.getId());
