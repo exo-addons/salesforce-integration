@@ -193,31 +193,55 @@ public class OppRestService implements ResourceContainer {
 	    }
 
 		@GET
-		@Path("addupdatecomment/{oppID}")
+		@Path("addupdatecomment/{oppName}")
 		public Response addUpdateComment(
 				@Context HttpServletRequest request,
-				@PathParam("oppID") String oppID,
-				@QueryParam("oldName") String oldName,
-				@QueryParam("newName") String newName) throws Exception {
+				@PathParam("oppName") String oppName,
+				@QueryParam("newName") String newName,
+				@QueryParam("oldstageName") String oldstageName,
+				@QueryParam("newstageName") String newstageName,
+				@QueryParam("oldamount") String oldamount,
+				@QueryParam("newamount") String newamount,
+				@QueryParam("oldclosedate") String oldclosedate,
+				@QueryParam("newclosedate") String newclosedate,
+				@QueryParam("olddescription") String olddeschhhription,
+				@QueryParam("newdescription") String newdescription) throws Exception {
 			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
 			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
-			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
-			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
-			Space space = spaceService.getSpaceByDisplayName(oldName);
-			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
-			Profile oppProfile = spaceIdentity.getProfile();
-			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
-			ExoSocialActivity firstactivity = activityManager.getActivity(oppProfile.getProperty("firstsalesforceactivity").toString());
-			ExoSocialActivity newcomment = new ExoSocialActivityImpl();
-			newcomment.setType(UIDefaultActivity.ACTIVITY_TYPE);
-			newcomment.setUserId(salesforceIdentity.getId());
-			newcomment.setTitle("Name changed from "+oldName+" to "+newName);
-			newcomment.setBody("Name changed from "+oldName+" to "+newName);
-			activityManager.saveComment(firstactivity,newcomment);
-			return Response.ok("comment added", mediaType).build();
+			Space space = spaceService.getSpaceByDisplayName(oppName);
+			if(space == null) {
+				return Response.ok("Opportunity Not Found", mediaType).build();
+			}
+			if(!oppName.equals(newName)) {
+				createcomment(space.getPrettyName(), "Name", oppName, newName);
+				//TODO Rename Space after renaming Opportunity
+				/*
+				UserNode renamedNode = renamePageNode(newName, space);
+				spaceService.renameSpace(space, newName);
+				// rename group label
+				OrganizationService organizationService = (OrganizationService) ExoContainerContext.getCurrentContainer().
+						getComponentInstanceOfType(OrganizationService.class);
+				GroupHandler groupHandler = organizationService.getGroupHandler();
+				Group group = groupHandler.findGroupById(space.getGroupId());
+				group.setLabel(space.getDisplayName());
+				groupHandler.saveGroup(group, true);
+				PortalRequestContext prContext = org.exoplatform.portal.webui.util.Util.getPortalRequestContext();
+				prContext.createURL(NodeURL.TYPE).setNode(renamedNode);
+				*/
+			}
+			if(!oldstageName.equals(newstageName)) {
+				createcomment(space.getPrettyName(), "Stage Name", oldstageName, newstageName);
+			}
+			if(!oldamount.equals(newamount)) {
+				createcomment(space.getPrettyName(), "Amount", oldamount, newamount);
+			}
+			if(!oldclosedate.equals(newclosedate)) {
+				createcomment(space.getPrettyName(), "Close Date", oldclosedate, newclosedate);
+			}
+			return Response.ok("Comment Added", mediaType).build();
 		}
-		
-		
+
+
 		@GET
 		@Path("chatterpost/{oppID}")
 		public Response chatterNewPost(
@@ -293,8 +317,22 @@ public class OppRestService implements ResourceContainer {
              return Response.ok("post created", mediaType).build();
 
 		}
-		
-		
+
+	private void createcomment(String spaceName, String fieldName, String oldValue, String newValue) {
+		ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
+		IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
+		Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, spaceName, false);
+		Profile oppProfile = spaceIdentity.getProfile();
+		Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
+		ExoSocialActivity firstactivity = activityManager.getActivity(oppProfile.getProperty("firstsalesforceactivity").toString());
+		ExoSocialActivity newcomment = new ExoSocialActivityImpl();
+		newcomment.setType(UIDefaultActivity.ACTIVITY_TYPE);
+		newcomment.setUserId(salesforceIdentity.getId());
+		newcomment.setTitle(fieldName+" changed from "+oldValue+" to "+newValue);
+		newcomment.setBody(fieldName+" changed from "+oldValue+" to "+newValue);
+		activityManager.saveComment(firstactivity,newcomment);
+	}
+
 	    @POST
 	    @Path("config")
 	    @Consumes({MediaType.APPLICATION_JSON})
