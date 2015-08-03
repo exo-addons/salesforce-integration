@@ -2,6 +2,7 @@ package org.exoplatform.salesforce.integ.rest;
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -54,8 +55,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.*;
 
 @Path("/salesforce")
@@ -213,6 +216,85 @@ public class OppRestService implements ResourceContainer {
 			activityManager.saveComment(firstactivity,newcomment);
 			return Response.ok("comment added", mediaType).build();
 		}
+		
+		
+		@GET
+		@Path("chatterpost/{oppID}")
+		public Response chatterNewPost(
+				@Context HttpServletRequest request,
+				@PathParam("oppID") String oppID,
+				@QueryParam("oppName") String oppName,
+				@QueryParam("poster") String poster,
+				@QueryParam("postType") String postType,
+				@QueryParam("textPost") String textPost,
+				@QueryParam("mentionned") String mentionned,
+				@QueryParam("contentPost") String contentPost,
+				@QueryParam("contentPostText") String contentPostText,
+				@QueryParam("postedlink") String postedlink) throws Exception {
+			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
+			String[] supportedType = new String[] {"TextPost","ContentPost","LinkPost"};
+			oppName=URLDecoder.decode(oppName, "UTF-8");
+			poster=URLDecoder.decode(poster, "UTF-8");
+			textPost =(textPost!=null)? URLDecoder.decode(textPost, "UTF-8"):null;
+			contentPost=(contentPost!=null)? URLDecoder.decode(contentPost, "UTF-8"):null;
+			mentionned=(mentionned!=null)? URLDecoder.decode(mentionned, "UTF-8"):null;
+			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
+			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
+			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
+			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
+			if (space == null) {
+				return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
+			}
+			
+			if (postType==null||!Arrays.asList(supportedType).contains(postType)) {
+				return Response.status(Response.Status.OK).entity("").build();
+			}
+
+			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
+			Profile oppProfile = spaceIdentity.getProfile();
+			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
+			ExoSocialActivity activity = new ExoSocialActivityImpl();
+			// activity.setTitle(URLDecoder.decode(oppName, "UTF-8"));
+			 activity.setUserId(salesforceIdentity.getId());
+             //activity.setType("");
+
+			String activitybody="<a href=\"#\">"+poster+"</a>";
+			if(postType.equals("TextPost")){
+				if(mentionned!=null){
+					String[] mentionnedList = mentionned.split(",");
+					for(int i=0 ; i<mentionnedList.length;i++){
+						textPost =StringUtils.replace(textPost, "@"+mentionnedList[i], "<a href=\"#\">"+"@"+mentionnedList[i]+"</a>",1);
+						//StringUtils.replace(text, searchString, replacement, max)e
+						//StringUtils.replaceChars(str, searchChar, replaceChar)
+						System.out.println(mentionnedList[i]);
+						
+					}
+				
+				//textPost=StringUtils.substringAfter("@"+mentionned, textpost);
+				//textPost= StringUtils.substringAfter(textPost, "@"+mentionned);
+				//activitybody+=textPost;
+				
+				
+				}
+				activitybody+=" posted new message: "+textPost;
+			}
+			else if(postType.equals("ContentPost")){
+				
+				activitybody+=" posted new file : "+"<a href=\"#\">"+contentPost+"</a>" +" " +contentPostText;
+			}
+			
+			else if(postType.equals("LinkPost")){
+				
+				activitybody+=" posted new link : "+postedlink;
+			}
+			
+			activity.setTitle(activitybody);
+             activityManager.saveActivityNoReturn(spaceIdentity, activity);
+             return Response.ok("post created", mediaType).build();
+
+		}
+		
+		
 	    @POST
 	    @Path("config")
 	    @Consumes({MediaType.APPLICATION_JSON})
