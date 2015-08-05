@@ -2,7 +2,6 @@ package org.exoplatform.salesforce.integ.rest;
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -38,7 +37,6 @@ import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.service.rest.RestChecker;
 import org.exoplatform.social.service.rest.Util;
 import org.exoplatform.social.webui.activity.UIDefaultActivity;
-import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
@@ -55,10 +53,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Path("/salesforce")
@@ -126,8 +124,9 @@ public class OppRestService implements ResourceContainer {
 					if(closeDate!=null){
 					DateTimeFormatter dateFormat = DateTimeFormat
 							.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-					DateTime t =dateFormat.parseDateTime(closeDate);
-					closeDate =t.toString();
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+					Date d = simpleDateFormat.parse(closeDate);
+					closeDate = simpleDateFormat.format(d);
 					}
 					else
 					{
@@ -212,7 +211,7 @@ public class OppRestService implements ResourceContainer {
 			if(space == null) {
 				return Response.ok("Opportunity Not Found", mediaType).build();
 			}
-			if(!oppName.equals(newName)) {
+			if(oppName != null && newName != null && !oppName.equals(newName)) {
 				createcomment(space.getPrettyName(), "Name", oppName, newName);
 				//TODO Rename Space after renaming Opportunity
 				/*
@@ -229,13 +228,13 @@ public class OppRestService implements ResourceContainer {
 				prContext.createURL(NodeURL.TYPE).setNode(renamedNode);
 				*/
 			}
-			if(!oldstageName.equals(newstageName)) {
+			if(oldstageName != null && newstageName != null && !oldstageName.equals(newstageName)) {
 				createcomment(space.getPrettyName(), "Stage Name", oldstageName, newstageName);
 			}
-			if(!oldamount.equals(newamount)) {
+			if(oldamount != null && newamount != null && !oldamount.equals(newamount)) {
 				createcomment(space.getPrettyName(), "Amount", oldamount, newamount);
 			}
-			if(!oldclosedate.equals(newclosedate)) {
+			if(oldclosedate != null && newclosedate != null && !oldclosedate.equals(newclosedate)) {
 				createcomment(space.getPrettyName(), "Close Date", oldclosedate, newclosedate);
 			}
 			return Response.ok("Comment Added", mediaType).build();
@@ -325,6 +324,51 @@ public class OppRestService implements ResourceContainer {
 		Profile oppProfile = spaceIdentity.getProfile();
 		Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
 		ExoSocialActivity firstactivity = activityManager.getActivity(oppProfile.getProperty("firstsalesforceactivity").toString());
+		Map<String, String> templateParams = firstactivity.getTemplateParams();
+		boolean changed = true;
+		switch (fieldName) {
+			case "Name" :
+				firstactivity.setTitle(newValue);
+				break;
+			case "Description" :
+				if(templateParams.containsKey(UISalesforceActivityBuilder.DESCRIPTION_PARAM)) {
+					templateParams.put(UISalesforceActivityBuilder.DESCRIPTION_PARAM, newValue);
+					oppProfile.setProperty("description", newValue);
+				}
+				break;
+			case "Stage Name" :
+				if(templateParams.containsKey(UISalesforceActivityBuilder.STAGE_PARAM)) {
+					templateParams.put(UISalesforceActivityBuilder.STAGE_PARAM, newValue);
+					oppProfile.setProperty("stageName", newValue);
+				}
+				break;
+			case "Amount" :
+				if(templateParams.containsKey(UISalesforceActivityBuilder.AMOUNT_PARAM)) {
+					templateParams.put(UISalesforceActivityBuilder.AMOUNT_PARAM, newValue);
+					oppProfile.setProperty("ammount", newValue);
+				}
+				break;
+			case "Close Date" :
+				if(templateParams.containsKey(UISalesforceActivityBuilder.CLOSEDATE_PARAM)) {
+					templateParams.put(UISalesforceActivityBuilder.CLOSEDATE_PARAM, newValue);
+					oppProfile.setProperty("CloseDate", newValue);
+				}
+				break;
+			default:
+				changed = false;
+				break;
+		}
+
+		try {
+			if(changed) {
+				firstactivity.setTemplateParams(templateParams);
+				activityManager.updateActivity(firstactivity);
+				identityManager.updateProfile(oppProfile);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		ExoSocialActivity newcomment = new ExoSocialActivityImpl();
 		newcomment.setType(UIDefaultActivity.ACTIVITY_TYPE);
 		newcomment.setUserId(salesforceIdentity.getId());

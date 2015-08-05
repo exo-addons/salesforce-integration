@@ -197,13 +197,14 @@
                     </div>
                 </div><!--end heading-->
                 <div class="description">
-                    <h1>The opportunity <strong>$activity.title</strong></h1>
-
-                    <h1><strong>Description : </strong><em>$oppDescription</em></h1>
-
-                    <h1><strong>Close Date : </strong><em>$oppCloseDate</em></h1>
+                    <h7>The opportunity <strong>$activity.title</strong></h7>
                     <br />
-                    <h1><strong>Stage : </strong>$oppStage</h1>
+                    <br />
+                    <h7><strong>Description : </strong><em>$oppDescription</em></h7>
+                    <br />
+                    <h7><strong>Close Date : </strong><em>$oppCloseDate</em></h7>
+                    <br />
+                    <h7><strong>Stage : </strong>$oppStage</h7>
                 </div>
                 <div class="actionBar clearfix ">
                     <% def toggleDisplayCommentAction = uicomponent.event('ToggleDisplayCommentForm', null, false);

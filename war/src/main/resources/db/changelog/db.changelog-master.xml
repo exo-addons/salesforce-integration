@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <!-- Managing both DB that use sequences and db that use auto increment -->
+    <property name="autoIncrement" value="true" dbms="mysql,mssql,h2,sybase,db2,hsqldb"/>
+    <property name="autoIncrement" value="false" dbms="oracle,postgresql"/>
+
+    <changeSet author="obechir@exoplatform.com" id="1.0.0-1">
+        <createTable tableName="POST_ACTIVITIES">
+            <column name="POST_ACTIVITY_ID" type="BIGINT" autoIncrement="${autoIncrement}" startWith="1">
+                <constraints primaryKey="true" primaryKeyName="PK_POST_ACTIVITY_ID" nullable="false" unique="true"/>
+            </column>
+            <column name="ACTIVITY_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="POST_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
