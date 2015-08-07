@@ -69,7 +69,7 @@
     </dependency>
     <dependency>
       <groupId>org.juzu</groupId>
-      <artifactId>juzu-bom-core</artifactId>
+      <artifactId>juzu-core</artifactId>
       <scope>provided</scope>
       <exclusions>
         <exclusion>

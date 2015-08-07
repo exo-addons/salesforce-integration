@@ -11,6 +11,6 @@
                 <label>Redirect Uri</label>
                 <input id="redirectUri" type="text" class="field" value="" />
             </div>
-	 <button class="btn btn-primary" type="button" onclick="sendConf()">Save</button>
+	 <button class="btn btn-primary" type="button" id="target">Save</button>
 
 

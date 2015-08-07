@@ -40,7 +40,8 @@ import org.exoplatform.social.webui.activity.UIDefaultActivity;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
-import org.mortbay.log.Log;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -62,7 +63,8 @@ import java.util.*;
 @Path("/salesforce")
 
 public class OppRestService implements ResourceContainer { 
-	  OrganizationService orgService = (OrganizationService) PortalContainer.getInstance().getComponentInstanceOfType(OrganizationService.class);
+	    private static final Log LOG = ExoLogger.getLogger(OppRestService.class);
+	    OrganizationService orgService = (OrganizationService) PortalContainer.getInstance().getComponentInstanceOfType(OrganizationService.class);
 	    RepositoryService repositoryService = (RepositoryService) PortalContainer.getInstance().getComponentInstanceOfType(RepositoryService.class);
 		//private DateTime CloseDate;
 	    private static final String portalContainerName = "portal";
@@ -498,7 +500,7 @@ public class OppRestService implements ResourceContainer {
 					while (contentsLinkIt.hasNext()) {
 						String id =contentsLinkIt.next().getContentDocumentId();
 						oppDocID.add(id);
-						Log.info("content id--->:"+id);
+						LOG.info("content id--->:"+id);
 					}
 					 nodepath = StringUtils.substringAfter(nodepath, "/");
 					for (int i = 0; i < oppDocID.size(); i++) {
@@ -507,7 +509,7 @@ public class OppRestService implements ResourceContainer {
 						
 						QueryResult<ContentVersion> qdoc=api.query(qq2, ContentVersion.class);
 						if(qdoc.getTotalSize()>0){
-							Log.info(qdoc.getRecords().get(0).getVersionDataUrl());
+							LOG.info(qdoc.getRecords().get(0).getVersionDataUrl());
 							HttpClient	httpclient1= new HttpClient();
 							String VD=qdoc.getRecords().get(0).getVersionDataUrl();
 							String path=qdoc.getRecords().get(0).getPathOnClient();

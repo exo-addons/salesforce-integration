@@ -20,22 +20,14 @@
 @Portlet
 @Bindings({ @Binding(SettingService.class) })
 
-@Assets(
-        location = AssetLocation.SERVER,
-        scripts = {
+@Scripts({
+	//@Script(id = "jqueryMin", value = "js/conf/jquery.1.9.1.min.js"),
+    //@Script(id = "juzu-ajax", value = "js/conf/juzu-ajax.js"),
+    //@Script(id = "jqueryForm", value = "js/conf/jquery.form.js"),
+    @Script(id = "conf", value = "js/conf/conf.js")
+})
 
-
-        		@Script(id = "juzu-ajax", src = "js/conf/jquery.1.9.1.min.js"),
-                @Script(id = "juzu-ajax", src = "js/conf/juzu-ajax.js"),
-                @Script(id = "jqueryForm", src = "js/conf/jquery.form.js"),
-                @Script(id = "conf", src = "js/conf/conf.js")
-
-
-        },
-        stylesheets = {
-
-        }
-)
+@Assets({"*"})
 package com.salesforce.portlet.config;
 import juzu.Application;
 import juzu.plugin.binding.Binding;
@@ -43,7 +35,6 @@ import juzu.plugin.binding.Bindings;
 import juzu.plugin.portlet.Portlet;
 import juzu.plugin.asset.Assets;
 import juzu.plugin.asset.Script;
-import juzu.asset.AssetLocation;
-
+import juzu.plugin.asset.Scripts;
 import org.exoplatform.commons.api.settings.SettingService;
 
