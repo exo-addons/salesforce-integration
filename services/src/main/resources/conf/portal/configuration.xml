@@ -20,6 +20,31 @@
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://www.exoplaform.org/xml/ns/kernel_1_2.xsd http://www.exoplaform.org/xml/ns/kernel_1_2.xsd"
                xmlns="http://www.exoplaform.org/xml/ns/kernel_1_2.xsd">
+
+    <component>
+        <type>org.exoplatform.commons.persistence.impl.EntityManagerService</type>
+        <init-params>
+            <value-param>
+                <name>persistence.unit.name</name>
+                <value>org.exoplatform.salesforce</value>
+            </value-param>
+        </init-params>
+    </component>
+
+    <component>
+        <key>org.exoplatform.salesforce.service.DAOHandler</key>
+        <type>org.exoplatform.salesforce.service.jpa.DAOHandlerJPAImpl</type>
+    </component>
+
+    <component>
+        <key>org.exoplatform.salesforce.service.PostActivitiesService</key>
+        <type>org.exoplatform.salesforce.service.impl.PostActivitiesServiceImpl</type>
+    </component>
+
+    <component>
+        <type>org.exoplatform.salesforce.service.impl.PostActivitiesRest</type>
+    </component>
+
 	<component>
 		<type>org.exoplatform.salesforce.integ.rest.OppRestService</type>
 	</component>

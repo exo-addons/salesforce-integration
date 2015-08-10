@@ -34,6 +34,7 @@
   <description>salesforce Extension</description>
   <properties>
     <org.exoplatform.platform.version>4.3.x-SNAPSHOT</org.exoplatform.platform.version>
+    <hibernate.version>4.1.12.Final</hibernate.version>
   </properties>
 
   <dependencyManagement>
