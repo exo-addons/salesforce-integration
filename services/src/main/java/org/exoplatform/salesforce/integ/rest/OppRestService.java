@@ -23,6 +23,8 @@ import org.exoplatform.salesforce.integ.util.Utils;
 import org.exoplatform.salesforce.service.PostActivitiesService;
 import org.exoplatform.services.jcr.RepositoryService;
 import org.exoplatform.services.jcr.ext.common.SessionProvider;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.rest.resource.ResourceContainer;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
@@ -33,6 +35,7 @@ import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvide
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.manager.IdentityManager;
+import org.exoplatform.social.core.space.SpaceUtils;
 import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
@@ -42,8 +45,6 @@ import org.exoplatform.social.webui.activity.UIDefaultActivity;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
-import org.exoplatform.services.log.ExoLogger;
-import org.exoplatform.services.log.Log;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -89,7 +90,10 @@ public class OppRestService implements ResourceContainer {
 		String permId=null;
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
-	    	 IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
+			if(spaceService.getSpaceByPrettyName(SpaceUtils.cleanString(oppName)) != null) {
+				return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
+			}
+			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 	    	 Cookie[] cookies = request.getCookies();
 	            String accesstoken=null;
 	            String instance_url=null;
