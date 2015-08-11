@@ -6,7 +6,7 @@ import javax.persistence.*;
  * Created by bechir on 06/08/15.
  */
 @Entity
-@Table(name = "POST_ACTIVITIES", schema = "", catalog = "salesforce_jcr")
+@Table(name = "POST_ACTIVITIES")
 @NamedQueries({
         @NamedQuery(name="PostActivitiesEntity.findPost",
                     query = "select p from PostActivitiesEntity p where p.postId = :postId"),

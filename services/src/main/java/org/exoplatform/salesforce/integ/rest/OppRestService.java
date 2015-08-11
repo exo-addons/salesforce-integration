@@ -323,6 +323,78 @@ public class OppRestService implements ResourceContainer {
              return Response.ok("post created", mediaType).build();
 
 		}
+		
+		@GET
+		@Path("chattercomments/{oppID}")
+		public Response chatterNewComment(
+				@Context HttpServletRequest request,
+				@PathParam("oppID") String oppID,
+				@QueryParam("oppName") String oppName,
+				@QueryParam("postID") String postID,
+				@QueryParam("poster") String poster,
+				@QueryParam("commentPost") String commentPost,
+				@QueryParam("mentionned") String mentionned) throws Exception {
+			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
+			oppName=URLDecoder.decode(oppName, "UTF-8");
+			poster=URLDecoder.decode(poster, "UTF-8");
+			commentPost =(commentPost!=null)? URLDecoder.decode(commentPost, "UTF-8"):null;
+			mentionned=(mentionned!=null)? URLDecoder.decode(mentionned, "UTF-8"):null;
+			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
+			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
+			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
+			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
+			if (space == null) {
+				return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
+			}
+			
+         
+			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
+			Profile oppProfile = spaceIdentity.getProfile();
+			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
+			PostActivitiesService postActivitiesService = (PostActivitiesService) PortalContainer.getInstance().getComponentInstanceOfType(PostActivitiesService.class);
+			PostActivitiesEntity chatterPost=postActivitiesService.findEntityByPostId(postID);
+			if(chatterPost==null){
+				return Response.status(Response.Status.NOT_FOUND).entity("no related post found").build();
+			}
+			//chatterPost.getPostActivityId()
+			
+			ExoSocialActivity activityPost = activityManager.getActivity(chatterPost.getActivityId());
+			if(activityPost==null){
+				return Response.status(Response.Status.NOT_FOUND).entity("no related post found").build();
+			}
+			// activity.setUserId(salesforceIdentity.getId());
+             //activity.setType("");
+
+			String activitybody="<a href=\"#\">"+poster+"</a>";
+			//if(postType.equals("TextPost")){
+				if(mentionned!=null){
+					String[] mentionnedList = mentionned.split(",");
+					for(int i=0 ; i<mentionnedList.length;i++){
+						commentPost =StringUtils.replace(commentPost, "@"+mentionnedList[i], "<a href=\"#\">"+"@"+mentionnedList[i]+"</a>",1);
+						//StringUtils.replace(text, searchString, replacement, max)e
+						//StringUtils.replaceChars(str, searchChar, replaceChar)
+						System.out.println(mentionnedList[i]);
+						
+					}
+				
+				//textPost=StringUtils.substringAfter("@"+mentionned, textpost);
+				//textPost= StringUtils.substringAfter(textPost, "@"+mentionned);
+				//activitybody+=textPost;
+				
+				
+				}
+				activitybody+=" posted new comment: "+commentPost;
+			//}
+			
+				ExoSocialActivity newcomment = new ExoSocialActivityImpl();
+				newcomment.setType(UIDefaultActivity.ACTIVITY_TYPE);
+				newcomment.setUserId(salesforceIdentity.getId());
+				newcomment.setTitle(activitybody);
+				newcomment.setBody(activitybody);
+				activityManager.saveComment(activityPost,newcomment);
+             return Response.ok("comment created", mediaType).build();
+
+		}
 
 	private void createcomment(String spaceName, String fieldName, String oldValue, String newValue) {
 		ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
