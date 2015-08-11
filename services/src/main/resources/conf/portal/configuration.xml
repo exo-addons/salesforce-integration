@@ -113,7 +113,7 @@
         </component-plugin>
     </external-component-plugins> 
     
-        <external-component-plugins>
+<!--        <external-component-plugins>
         <target-component>org.exoplatform.services.scheduler.JobSchedulerService</target-component>
         <component-plugin>
             <name>PeriodJob Plugin</name>
@@ -129,13 +129,13 @@
                     <property name="job"
                               value="org.exoplatform.salesforce.integ.job.OpportunityCreateActivityJob"/>
                     <property name="repeatCount" value="0"/>
-                    <property name="period" value="60000"/><!-- 1 mins--> 
+                    <property name="period" value="60000"/>
                     <property name="startTime" value="+0"/>
                     <property name="endTime" value=""/>
                 </properties-param>
             </init-params>
         </component-plugin>
-    </external-component-plugins>
+    </external-component-plugins>-->
     	<external-component-plugins>
 		<target-component>org.exoplatform.web.filter.ExtensibleFilter</target-component>
 		<component-plugin profiles="all">

@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.utils.MimeTypeResolver;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.salesforce.PostActivitiesEntity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivityBuilder;
 import org.exoplatform.salesforce.integ.connector.entity.AggregateResult;
@@ -19,6 +20,7 @@ import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet;
 import org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage;
 import org.exoplatform.salesforce.integ.util.Utils;
+import org.exoplatform.salesforce.service.PostActivitiesService;
 import org.exoplatform.services.jcr.RepositoryService;
 import org.exoplatform.services.jcr.ext.common.SessionProvider;
 import org.exoplatform.services.organization.OrganizationService;
@@ -251,6 +253,7 @@ public class OppRestService implements ResourceContainer {
 				@QueryParam("oppName") String oppName,
 				@QueryParam("poster") String poster,
 				@QueryParam("postType") String postType,
+				@QueryParam("postId") String postId,
 				@QueryParam("textPost") String textPost,
 				@QueryParam("mentionned") String mentionned,
 				@QueryParam("contentPost") String contentPost,
@@ -315,6 +318,8 @@ public class OppRestService implements ResourceContainer {
 			
 			activity.setTitle(activitybody);
              activityManager.saveActivityNoReturn(spaceIdentity, activity);
+			PostActivitiesService postActivitiesService = (PostActivitiesService) PortalContainer.getInstance().getComponentInstanceOfType(PostActivitiesService.class);
+			postActivitiesService.createEntity(new PostActivitiesEntity(activity.getId(), postId));
              return Response.ok("post created", mediaType).build();
 
 		}

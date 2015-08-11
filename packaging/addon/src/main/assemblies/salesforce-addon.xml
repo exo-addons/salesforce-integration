@@ -32,6 +32,10 @@
       <outputDirectory></outputDirectory>
       <includes>
         <include>${project.groupId}:salesforce-*:jar</include>
+        <include>org.hibernate:hibernate-entitymanager</include>
+        <include>org.codehaus.jackson:jackson-core-asl</include>
+        <include>org.codehaus.jackson:jackson-mapper-asl</include>
+        <include>com.force.api:force-rest-api</include>
       </includes>
       <scope>provided</scope>
       <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}

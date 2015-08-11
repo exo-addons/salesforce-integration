@@ -49,6 +49,14 @@
     </dependencies>
   </dependencyManagement>
 
+    <repositories>
+        <repository>
+            <id>force-rest-api</id>
+            <name>force-rest-api repository on GitHub</name>
+            <url>http://jesperfj.github.com/force-rest-api/repository/</url>
+        </repository>
+    </repositories>
+
   <modules>
     <module>config</module>
     <module>war</module>

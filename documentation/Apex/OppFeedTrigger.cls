@@ -12,6 +12,7 @@ String parameters='poster='+EncodingUtil.urlEncode(UserInfo.getName(), 'UTF-8');
             parameters +='&oppName='+EncodingUtil.urlEncode(oppName, 'UTF-8');
             System.debug('the opportunity name is: '+oppName);
              parameters +='&postType='+F.Type;
+             parameters +='&postId='+F.id;
                 if(F.Type=='TextPost')
                 {
                 System.debug (UserInfo.getName()+ ' posted new message'+  F.body);
