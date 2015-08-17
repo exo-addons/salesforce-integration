@@ -2,6 +2,8 @@ package org.exoplatform.salesforce.integ.rest;
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -57,7 +59,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
@@ -705,6 +712,32 @@ public class OppRestService implements ResourceContainer {
             return Response.seeOther(URI.create(Util.getBaseUrl() + "/"+Utils.getSpaceUrl(oppName)+"/documents")).build();
            // return Response.ok("Created").build();
 	    }
+	    
+	    
+	    @POST
+	    @Path("/chatterattachments")
+	    @Consumes(MediaType.MULTIPART_FORM_DATA)
+	    @Produces(MediaType.TEXT_PLAIN)
+	    public Response uploadImageOrFile(@Context HttpServletRequest request,@Context HttpServletResponse response){
+
+		try {
+			String data = Utils.getBody(request);
+
+			// decode the data recieved from the trigger
+			byte[] encodeBase64 = Base64.decodeBase64(data);
+			//will be auto write to jcr with preview activity
+			//test local store ok
+		    /* OutputStream fos = new FileOutputStream(new
+			 File("/home/exo/java/consulting/lastsalesforce/workspace/salesforce-extension/services/target/ddbaha.txt"));
+			 fos.write(encodeBase64);
+			 fos.close();*/
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return Response.status(200).build();
+	}
 
 	    
 	    
