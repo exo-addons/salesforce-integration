@@ -41,15 +41,18 @@ import org.exoplatform.social.core.space.SpaceUtils;
 import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
+import org.exoplatform.social.plugin.doc.UIDocActivity;
 import org.exoplatform.social.service.rest.RestChecker;
 import org.exoplatform.social.service.rest.Util;
 import org.exoplatform.social.webui.activity.UIDefaultActivity;
+import org.exoplatform.wcm.ext.component.activity.FileUIActivity;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -65,6 +68,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
@@ -167,6 +171,7 @@ public class OppRestService implements ResourceContainer {
             project_.setRegistration(Space.VALIDATION);
             project_.setPriority(Space.INTERMEDIATE_PRIORITY);
             Space s= spaceService.createSpace(project_, owner);
+            createspaceFolder(project_,spaceService);
 
 			spaceService.addMember(s,"salesforce");
 
@@ -205,6 +210,20 @@ public class OppRestService implements ResourceContainer {
        
             return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
 	    }
+
+		private void createspaceFolder(Space s, SpaceService spaceService) {
+			 try {
+				Session session = repositoryService.getCurrentRepository().getSystemSession("collaboration");
+				Node rootNode = session.getRootNode();
+				Node groupFolder = rootNode.getNode("Groups" + s.getGroupId() + "/Documents");
+				Node salesForceFolder = groupFolder.addNode("salesForceDocuments", "nt:folder");
+				salesForceFolder.getSession().save();
+			} catch (RepositoryException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
 
 		@GET
 		@Path("addupdatecomment/{oppName}")
@@ -271,7 +290,7 @@ public class OppRestService implements ResourceContainer {
 				@QueryParam("contentPostText") String contentPostText,
 				@QueryParam("postedlink") String postedlink) throws Exception {
 			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
-			String[] supportedType = new String[] {"TextPost","ContentPost","LinkPost"};
+			String[] supportedType = new String[] {"TextPost","LinkPost"};
 			oppName=URLDecoder.decode(oppName, "UTF-8");
 			poster=URLDecoder.decode(poster, "UTF-8");
 			textPost =(textPost!=null)? URLDecoder.decode(textPost, "UTF-8"):null;
@@ -317,11 +336,11 @@ public class OppRestService implements ResourceContainer {
 				}
 				activitybody+=" posted new message: "+textPost;
 			}
-			else if(postType.equals("ContentPost")){
+			/*else if(postType.equals("ContentPost")){
 				
 				activitybody+=" posted new file : "+"<a href=\"#\">"+contentPost+"</a>" +" " +contentPostText;
 			}
-			
+			*/
 			else if(postType.equals("LinkPost")){
 				
 				activitybody+=" posted new link : "+postedlink;
@@ -715,27 +734,96 @@ public class OppRestService implements ResourceContainer {
 	    
 	    
 	    @POST
-	    @Path("/chatterattachments")
+	    @Path("/chatterattachments/{oppID}")
 	    @Consumes(MediaType.MULTIPART_FORM_DATA)
 	    @Produces(MediaType.TEXT_PLAIN)
-	    public Response uploadImageOrFile(@Context HttpServletRequest request,@Context HttpServletResponse response){
-
-		try {
+	    public Response uploadImageOrFile(@Context HttpServletRequest request,@Context HttpServletResponse response,
+				@PathParam("oppID") String oppID,
+				@QueryParam("oppName") String oppName,
+				@QueryParam("poster") String poster,
+				@QueryParam("postId") String postId,
+				@QueryParam("textPost") String textPost,
+				@QueryParam("mentionned") String mentionned,
+				@QueryParam("contentPost") String contentPost,
+				@QueryParam("contentID") String contentID,
+				@QueryParam("contentPostText") String contentPostText) throws RepositoryException, IOException{
+            	String REPOSITORY = "repository";
+	    	String WORKSPACE = "collaboration";
+	    	oppName=URLDecoder.decode(oppName, "UTF-8");
+			poster=URLDecoder.decode(poster, "UTF-8");
+			textPost =(textPost!=null)? URLDecoder.decode(textPost, "UTF-8"):null;
+			contentPost=(contentPost!=null)? URLDecoder.decode(contentPost, "UTF-8"):null;
+			mentionned=(mentionned!=null)? URLDecoder.decode(mentionned, "UTF-8"):null;
+			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
+			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
+			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
+			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
+			if (space == null) {
+				return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
+			}
+			
+			Session session = repositoryService.getCurrentRepository().getSystemSession("collaboration");
+			Node rootNode = session.getRootNode();
+			Node sfFolder =rootNode.getNode("Groups"+space.getGroupId()+"/Documents/salesforcedocuments");
+			String baseName = FilenameUtils.getBaseName(contentPost);
+			MimeTypeResolver resolver = new MimeTypeResolver();
+			String minetype = resolver.getMimeType(contentPost);
+			//use contentID as unique name and title as real name as same content could be attached 
+			Node fileNode = null;
+			if(!sfFolder.hasNode(contentID)){
+				fileNode=  sfFolder.addNode(contentID, "nt:file");
+			fileNode.setProperty("exo:title", contentPost);
+			Node jcrContent = fileNode.addNode("jcr:content", "nt:resource");
 			String data = Utils.getBody(request);
-
-			// decode the data recieved from the trigger
 			byte[] encodeBase64 = Base64.decodeBase64(data);
-			//will be auto write to jcr with preview activity
-			//test local store ok
-		    /* OutputStream fos = new FileOutputStream(new
-			 File("/home/exo/java/consulting/lastsalesforce/workspace/salesforce-extension/services/target/ddbaha.txt"));
-			 fos.write(encodeBase64);
-			 fos.close();*/
+			jcrContent.setProperty("jcr:data",new ByteArrayInputStream(encodeBase64));
+			jcrContent.setProperty("jcr:lastModified",Calendar.getInstance());
+			jcrContent.setProperty("jcr:encoding", "UTF-8");
+			jcrContent.setProperty("jcr:mimeType", minetype);
+			sfFolder.save();
+			}
+			else
+				fileNode=sfFolder.getNode(contentID);
+			
 
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
+			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
+			ExoSocialActivity activity = new ExoSocialActivityImpl();
+
+			
+			activity.setType(UIDocActivity.ACTIVITY_TYPE);
+			Map<String, String> templateParams = new HashMap<String, String>();
+			if(mentionned!=null){
+				String[] mentionnedList = mentionned.split(",");
+				for(int i=0 ; i<mentionnedList.length;i++){
+					contentPostText =StringUtils.replace(contentPostText, "@"+mentionnedList[i], "<a href=\"#\">"+"@"+mentionnedList[i]+"</a>",1);
+					
+				}
+			}
+			
+			
+			templateParams.put(UIDocActivity.WORKSPACE,WORKSPACE);
+			templateParams.put(UIDocActivity.REPOSITORY,REPOSITORY);
+			templateParams.put(UIDocActivity.MESSAGE, contentPostText);      
+			//templateParams.put(UIDocActivity.DOCLINK,"/portal/rest/jcr/repository/collaboration/Users/t___/th___/tho___/thomas/Private/Documents/samir.pdf, DOCNAME=samir.pdf, DOCPATH=/Users/t___/th___/tho___/thomas/Private/Documents/samir.pdf");
+			templateParams.put(UIDocActivity.DOCNAME,contentPost);
+			templateParams.put(UIDocActivity.DOCUMENT_TITLE,contentPost);
+			templateParams.put(UIDocActivity.IS_SYMLINK,"false");
+			templateParams.put(UIDocActivity.MIME_TYPE, minetype);
+			templateParams.put(UIDocActivity.DOCPATH,fileNode.getPath());
+			activity.setTemplateParams(templateParams);
+           
+			
+			
+			activity.setUserId(salesforceIdentity.getId());
+			String activitybody="";
+			activitybody+=" posted new file : "+"<a href=\"#\">"+contentPost+"</a>" +" " +contentPostText;			
+			activity.setTitle(activitybody);
+			activity.setBody(activitybody);
+            activityManager.saveActivityNoReturn(spaceIdentity, activity);
+			PostActivitiesService postActivitiesService = (PostActivitiesService) PortalContainer.getInstance().getComponentInstanceOfType(PostActivitiesService.class);
+			postActivitiesService.createEntity(new PostActivitiesEntity(activity.getId(), postId));
+
 		return Response.status(200).build();
 	}
 
