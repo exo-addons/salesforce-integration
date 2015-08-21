@@ -764,7 +764,7 @@ public class OppRestService implements ResourceContainer {
 			
 			Session session = repositoryService.getCurrentRepository().getSystemSession("collaboration");
 			Node rootNode = session.getRootNode();
-			Node sfFolder =rootNode.getNode("Groups"+space.getGroupId()+"/Documents/salesforcedocuments");
+			Node sfFolder =rootNode.getNode("Groups"+space.getGroupId()+"/Documents/salesForceDocuments");
 			String baseName = FilenameUtils.getBaseName(contentPost);
 			MimeTypeResolver resolver = new MimeTypeResolver();
 			String minetype = resolver.getMimeType(contentPost);
