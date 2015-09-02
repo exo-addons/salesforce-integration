@@ -22,15 +22,10 @@ Add eXo server as a connected app to salesforce with OAuth settings :
 1. From Setup, click Create | Apps and click New to start defining a connected app.
 2. Enter the name of your application.
 3. Enter the contact email information, as well as any other information appropriate for your application.
-4. Select Enable OAuth Settings and enter the Callback URL: 
-
-```
-https://salesforce:8443/salesforce-extension/oauth/_callback
-```
+4. Select Enable OAuth Settings and enter the Callback URL ```https://salesforce:8443/salesforce-extension/oauth/_callback```
 ![Add Connected app to Salesforce](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/oauth.png)
-
-5. Select OAuth Scopes : "full access"
-6.Click Save. 
+5. Select OAuth Scopes : "full access".
+6. Click Save. 
 
 The Consumer Key and the Consumer Secret are created (click the link to reveal it).
 
@@ -54,7 +49,7 @@ https://salesforce:8443/salesforce-extension/oauth?oppID={!Opportunity.Id}
 
 Note : 
 - https://salesforce:8443/salesforce-extension/oauth?oppID is the link to your eXo server
-- {!Opportunity.Id} dynamic query param that will be send to the server according to the current selected opportunity.
+- {!Opportunity.Id} dynamic query param that will be sent to the server according to the current selected opportunity.
 
 ![Add Custom Button](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/custom_button.png)
 
