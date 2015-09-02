@@ -201,12 +201,6 @@ Content Post from Salesforce will create activity with eXo content preview, so m
 
 
 
-
-  
-  
-
-
-
 -2- Salesforce Document Synchronizer :
 
 Clicking on get document from salesforce will get or synchronize the opportunity space document with the SF content.
@@ -214,3 +208,47 @@ Clicking on get document from salesforce will get or synchronize the opportunity
 ![Salesforce attachement](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/opportunity_attachement.png)
 
 ![Synchronizer](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/content.png)
+
+
+Development :
+===============
+
+
+To get real time updates from Salesforce to eXo platform the main used techniques are:
+
+
+ -Apex triggers on specific object that do HTTP callouts calling RESTful services using the standard GET and POST:
+
+```java
+trigger OpportunityTrackerTrigger on Opportunity (after update) {
+    
+        ...        
+        HttpCallout.getContent(url)
+        }
+```
+
+ To extend behavior on other component developper could trigger others object(Acount,Leads..) and send information to eXo server.  
+ 
+
+
+ -Polling: periodically poll Salesforce to get any new data using scheduler job and using SOQL query:
+
+
+ 
+
+ ```java
+ public void execute(JobExecutionContext context) {
+..
+ QueryResult<Opportunity> q= new ForceApi(c,s).query("SELECT Id,Name,Amount,CloseDate,StageName,isClosed,Description FROM Opportunity LIMIT 1000", Opportunity.class);
+
+ ```
+
+ You can enable "OpportunityCreateActivityJob" from configuration file and configure polling period.
+
+
+
+ OAuth: that permits eXo as third-party to access salesforce user data. 
+
+
+
+
