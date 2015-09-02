@@ -1,10 +1,10 @@
-Setup the Application
+aSetup the Application
 ===============
 
 Configure your server to support SSL:
 -----------------------
 
-. Generate server key using Java keytool:
+Generate server key using Java keytool:
 
 keytool -genkey -alias alias -keypass mypassword -keystore keystore.key -storepass mypassword
 
@@ -30,7 +30,9 @@ https://salesforce:8443/salesforce-extension/oauth/_callback
 ![Add Connected app to Salesforce](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/oauth.png)
 
 5. Select OAuth Scopes : "full access"
-6.Click Save. The Consumer Key and the Consumer Secret are created (click the link to reveal it)Save.
+6.Click Save. 
+
+The Consumer Key and the Consumer Secret are created (click the link to reveal it).
 
 ![Consumer Secret and Key](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/key.png)
 
@@ -83,14 +85,17 @@ Depends on Force.com REST API Connector please refer to https://github.com/jespe
 Configuration
 -------------
 
-oauth.salesforce.clientId=3MVG9Rd3qC6oMalU6h9PD3dpIB7AXRLwl8iwMAPfzStu
-oauth.salesforce.clientSecret=9140283238048111603
+Open the configuration file of your Platform server ../gatein/conf/exo.properties
+Add the following variables: 
+
+oauth.salesforce.clientId=xxxxxx
+oauth.salesforce.clientSecret=zzzzzz
 oauth.salesforce.redirectUri=https://serverName:8443/salesforce-extension/oauth/_callback
 
-The `oauth.salesforce.clientId` parameter is the `Client ID` and
-The `oauth.salesforce.clientSecret` parameter is the `client Secret`
-are generated when setup the connected application to sales force see Setup the Application section
-The `oauth.salesforce.redirectUri` parameter is the `redirect Uri` used for OAuth flows to pass an access token to query the salesforce from exo server
+The `oauth.salesforce.clientId` parameter is the `Client ID`.
+The `oauth.salesforce.clientSecret` parameter is the `client Secret`.
+`Client ID` and `client Secret` are generated when setup the connected application to Salesforce see Setup the Application section 
+The `oauth.salesforce.redirectUri` parameter is the `redirect Uri` used for OAuth flows to pass an access token to query the salesforce from exo server.
 
 Add Apex triggers
 -----------------
@@ -156,13 +161,51 @@ trigger mytrigger on Opportunity (after update) {
 }
 ```
 
-uses case:
+Use Salesforce Integration extension:
 ===============
 
--1- Clicking on the "create deal room" button from salesforce will create an exo space with some information of the selected opportunity(amout, stage description) and any modification on these fiels from salesforce will create new activity at eXo corresponding space.
+The primary entry point to Salesforce addon is the "create deal room" button from salesforce.
+
+Once clicked and if first use, the user will be asked to authorize the eXo application to access Salesforce and if allowed, user will be redirected to eXo deal room.
+
+![Access permission](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/request_permission.png)
+
+Opportunity updates
+----------------
+
+An activity will be created marking some information about the opportunity with an external link to this deal.
+
+![Opportunity update](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/firstactivity.png)
+
+Any modification on these fields from Salesforce will create new comment at eXo side notifying deal room members on this update.
+ 
+![Opportunity update](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/updateNotify.png)
 
 
-![Opportunity update](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/update.png)
+Chatter integration
+----------------
+
+Real time chatter pull :This feature will Pull Salesforce chatter post to eXo activity, so letting more people to get involved and making things more collaborative:
+
+![Opportunity update](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/chatterPost.png)
+
+Mention eXo people from Salesforce will notify them at eXo side so they can know they are involved:
+
+![mention people](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/mention.png)
+
+Content share with document preview:
+
+Content Post from Salesforce will create activity with eXo content preview, so more readable content shared with more people:
+
+![mention people](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/contentpost.png)
+
+
+
+
+  
+  
+
+
 
 -2- Salesforce Document Synchronizer :
 
