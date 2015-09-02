@@ -1,4 +1,4 @@
-aSetup the Application
+Setup the Application
 ===============
 
 Configure your server to support SSL:
@@ -246,8 +246,7 @@ trigger OpportunityTrackerTrigger on Opportunity (after update) {
  You can enable "OpportunityCreateActivityJob" from configuration file and configure polling period.
 
 
-
- OAuth: that permits eXo as third-party to access salesforce user data. 
+-OAuth: that permits eXo as third-party to access salesforce user data. 
 
 
 
