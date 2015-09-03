@@ -24,7 +24,7 @@
   <parent>
     <groupId>com.salesforce</groupId>
     <artifactId>salesforce-extension</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.x-SNAPSHOT</version>
   </parent>
   <artifactId>salesforce-services</artifactId>
   <name>salesforce services</name>
