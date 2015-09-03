@@ -41,10 +41,6 @@
         <type>org.exoplatform.salesforce.service.impl.PostActivitiesServiceImpl</type>
     </component>
 
-    <component>
-        <type>org.exoplatform.salesforce.service.impl.PostActivitiesRest</type>
-    </component>
-
 	<component>
 		<type>org.exoplatform.salesforce.integ.rest.OppRestService</type>
 	</component>
