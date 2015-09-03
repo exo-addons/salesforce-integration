@@ -2,7 +2,6 @@ package org.exoplatform.salesforce.integ.rest;
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -45,7 +44,6 @@ import org.exoplatform.social.plugin.doc.UIDocActivity;
 import org.exoplatform.social.service.rest.RestChecker;
 import org.exoplatform.social.service.rest.Util;
 import org.exoplatform.social.webui.activity.UIDefaultActivity;
-import org.exoplatform.wcm.ext.component.activity.FileUIActivity;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
@@ -62,13 +60,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
@@ -90,9 +83,9 @@ public class OppRestService implements ResourceContainer {
 	@Path("create/{oppID}")
 	public Response createOpp(
 			@Context HttpServletRequest request,
-			@PathParam("oppID") String oppID,
-			@QueryParam("oppName") String oppName) throws Exception {
+			@PathParam("oppID") String oppID) throws Exception {
 
+		String oppName = null;
 		String ammount = null;
 		String description = null;
 		String isClosed = null;
@@ -101,9 +94,6 @@ public class OppRestService implements ResourceContainer {
 		String permId=null;
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
-			if(spaceService.getSpaceByPrettyName(SpaceUtils.cleanString(oppName)) != null) {
-				return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
-			}
 			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 	    	 Cookie[] cookies = request.getCookies();
 	            String accesstoken=null;
@@ -128,7 +118,16 @@ public class OppRestService implements ResourceContainer {
 			if(accesstoken!=null&&instance_url!=null){
 				
 				ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
-				 Opportunity opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
+				Opportunity opp = null;
+				try {
+					opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
+				} catch (Exception e) {
+					return Response.serverError().status(404).build();
+				}
+				oppName = opp.getName();
+				if(spaceService.getSpaceByPrettyName(SpaceUtils.cleanString(oppName)) != null) {
+					return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
+				}
 				 String qq="SELECT COUNT(Id) FROM OpportunityFeed where ParentId="+ "\'"+oppID+"\'";
 					QueryResult<AggregateResult> totalFeed=api.query(qq, AggregateResult.class);
 					//count the total feed at create deal room time on the opp 
@@ -139,7 +138,6 @@ public class OppRestService implements ResourceContainer {
 					description = (opp.getDescription()!=null)? opp.getDescription():"Not defined";
 					isClosed = (opp.getIsClosed()!=null)? opp.getIsClosed().toString():"Not defined";
 					closeDate= (opp.getCloseDate()!=null)? opp.getCloseDate().toString():"Not defined";
-					oppName= description = (opp.getName()!=null)? opp.getName():"Not defined";
 					if(closeDate!=null){
 					DateTimeFormatter dateFormat = DateTimeFormat
 							.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
