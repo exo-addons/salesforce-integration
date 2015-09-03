@@ -26,7 +26,7 @@
     <artifactId>addons-parent-pom</artifactId>
     <version>4</version>
   </parent>
-  <groupId>com.salesforce</groupId>
+  <groupId>org.exoplatform.addons.salesforce-integration</groupId>
   <artifactId>salesforce-extension</artifactId>
   <version>1.0.x-SNAPSHOT</version>
   <name>salesforce Extension</name>
