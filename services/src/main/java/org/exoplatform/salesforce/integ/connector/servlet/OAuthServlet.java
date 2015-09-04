@@ -55,20 +55,20 @@ public class OAuthServlet extends HttpServlet {
 			// it's better to use filter in next step for all auth request
 			clientId=System.getProperty("oauth.salesforce.clientId");
 			if (System.getProperty("oauth.salesforce.clientId")==null) {
-				clientId = "3MVG9Rd3qC6oMalU6h9PyWK_07UERoFPmtwsBeSODWWKmNlNBBCBtpnnvHS3XD3dpIB7AXRLwl8iwMAPfzStu";
+				clientId = "3MVG9Rd3qC6oMalVaRGdPD6BFFD89SgIXKOVxc2nwIPmdYDkFPuXBLWpPTz2D685IIG.DFVYEwYEdIqo9B827";
 				System.setProperty("oauth.salesforce.clientId", clientId);
 
 			}
 			
 			clientSecret =System.getProperty("oauth.salesforce.clientSecret") ;
 			if (System.getProperty("oauth.salesforce.clientSecret") == null) {
-				clientSecret = "9140283238048111603";
+				clientSecret = "3281403007789330224";
 				System.setProperty("oauth.salesforce.clientSecret",clientSecret);
 			}
 			
 			redirectUri=System.getProperty("oauth.salesforce.redirectUri");
 			if (System.getProperty("oauth.salesforce.redirectUri") == null) {
-				redirectUri = "https://zaoui:8443/salesforce-extension/oauth/_callback";
+				redirectUri = "https://plfent-4.3.x-pkgpriv-salesforce-integration-snapshot.acceptance5.exoplatform.org/salesforce-extension/oauth/_callback";
 				System.setProperty("oauth.salesforce.redirectUri", redirectUri);
 
 			}
@@ -90,7 +90,10 @@ public class OAuthServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		Cookie[] cookies = request.getCookies();
-
+		clientId=System.getProperty("oauth.salesforce.clientId");
+		redirectUri=System.getProperty("oauth.salesforce.redirectUri");
+		clientSecret =System.getProperty("oauth.salesforce.clientSecret") ;
+		
 		LOG.info("Begin OAuth");
 		tempOppID = (tempOppID == null) ? request.getParameter("oppID")
 				: tempOppID;
