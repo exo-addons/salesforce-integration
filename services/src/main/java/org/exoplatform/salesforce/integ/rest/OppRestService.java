@@ -187,9 +187,9 @@ public class OppRestService implements ResourceContainer {
                 //any change on total means need update in chatter that need to be push to eXo
                 oppProfile.setProperty("nbOppFeed", TotalOppFeed);
 
-
-                activity.setTitle(oppName);
-
+				String oppUrl = instance_url + "/" + oppID;
+				String oppLink = "<a href=\"" + oppUrl + "\">" + oppName + "</a>";
+				activity.setTitle(oppLink);
 				activity.setType(UISalesforceActivity.ACTIVITY_TYPE);
 				Map<String, String> templateParams = new HashMap<String, String>();
 				templateParams.put(UISalesforceActivityBuilder.DESCRIPTION_PARAM,description);
