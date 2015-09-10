@@ -1,6 +1,6 @@
 package org.exoplatform.salesforce.service;
 
-import org.exoplatform.salesforce.PostActivitiesEntity;
+import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 
 /**
  * Created by bechir on 10/08/15.

@@ -1,6 +1,6 @@
 package org.exoplatform.salesforce.service.impl;
 
-import org.exoplatform.salesforce.PostActivitiesEntity;
+import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 import org.exoplatform.salesforce.service.DAOHandler;
 import org.exoplatform.salesforce.service.PostActivitiesService;
 import org.exoplatform.services.log.ExoLogger;

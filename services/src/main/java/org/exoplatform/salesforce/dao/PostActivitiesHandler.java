@@ -1,7 +1,7 @@
 package org.exoplatform.salesforce.dao;
 
 import org.exoplatform.commons.api.persistence.GenericDAO;
-import org.exoplatform.salesforce.PostActivitiesEntity;
+import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 
 /**
  * Created by bechir on 06/08/15.

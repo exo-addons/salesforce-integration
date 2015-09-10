@@ -3,8 +3,10 @@
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
 
-  <persistence-unit name="org.exoplatform.salesforce" transaction-type="RESOURCE_LOCAL">
+  <persistence-unit name="exo-pu" transaction-type="RESOURCE_LOCAL">
     <provider>org.hibernate.ejb.HibernatePersistence</provider>
     <non-jta-data-source>java:comp/env/exo-jcr_portal</non-jta-data-source>
+      <class>org.exoplatform.salesforce.domain.PostActivitiesEntity</class>
+    <exclude-unlisted-classes>false</exclude-unlisted-classes>
   </persistence-unit>
 </persistence>

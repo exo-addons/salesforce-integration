@@ -2,11 +2,12 @@ package org.exoplatform.salesforce.service.jpa;
 
 import org.exoplatform.commons.persistence.impl.EntityManagerService;
 import org.exoplatform.commons.persistence.impl.GenericDAOJPAImpl;
-import org.exoplatform.salesforce.PostActivitiesEntity;
 import org.exoplatform.salesforce.dao.PostActivitiesHandler;
+import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+
 import java.util.logging.Logger;
 
 /**
@@ -30,7 +31,7 @@ public class PostActivitiesDAOImpl extends GenericDAOJPAImpl<PostActivitiesEntit
     @Override
     public PostActivitiesEntity findPost(String postId) {
         EntityManager em = getEntityManager();
-        Query query = em.createNamedQuery("PostActivitiesEntity.findPost");
+        Query query = em.createNamedQuery("PostActivitiesEntity.findPost",PostActivitiesEntity.class);
         query.setParameter("postId", postId);
 
         return (PostActivitiesEntity) query.getSingleResult();
@@ -39,7 +40,7 @@ public class PostActivitiesDAOImpl extends GenericDAOJPAImpl<PostActivitiesEntit
     @Override
     public PostActivitiesEntity findActivity(String activityId) {
         EntityManager em = getEntityManager();
-        Query query = em.createNamedQuery("PostActivitiesEntity.findActivity");
+        Query query = em.createNamedQuery("PostActivitiesEntity.findActivity",PostActivitiesEntity.class);
         query.setParameter("activityId", activityId);
 
         return (PostActivitiesEntity) query.getSingleResult();

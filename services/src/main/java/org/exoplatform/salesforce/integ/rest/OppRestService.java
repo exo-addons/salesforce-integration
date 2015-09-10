@@ -2,6 +2,7 @@ package org.exoplatform.salesforce.integ.rest;
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -11,7 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.utils.MimeTypeResolver;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
-import org.exoplatform.salesforce.PostActivitiesEntity;
+import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivityBuilder;
 import org.exoplatform.salesforce.integ.connector.entity.AggregateResult;
@@ -60,6 +61,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -346,8 +348,14 @@ public class OppRestService implements ResourceContainer {
 			
 			activity.setTitle(activitybody);
              activityManager.saveActivityNoReturn(spaceIdentity, activity);
-			PostActivitiesService postActivitiesService = (PostActivitiesService) PortalContainer.getInstance().getComponentInstanceOfType(PostActivitiesService.class);
-			postActivitiesService.createEntity(new PostActivitiesEntity(activity.getId(), postId));
+           
+			try {
+				PostActivitiesService postActivitiesService = (PostActivitiesService) PortalContainer.getInstance().getComponentInstanceOfType(PostActivitiesService.class);
+				postActivitiesService.createEntity(new PostActivitiesEntity(activity.getId(), postId));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				LOG.error(e.getMessage(), e);
+			}
              return Response.ok("post created", mediaType).build();
 
 		}
