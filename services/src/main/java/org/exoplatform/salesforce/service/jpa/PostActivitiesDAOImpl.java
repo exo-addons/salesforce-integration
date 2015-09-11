@@ -1,6 +1,5 @@
 package org.exoplatform.salesforce.service.jpa;
 
-import org.exoplatform.commons.api.persistence.Transactional;
 import org.exoplatform.commons.persistence.impl.EntityManagerService;
 import org.exoplatform.commons.persistence.impl.GenericDAOJPAImpl;
 import org.exoplatform.salesforce.dao.PostActivitiesHandler;
@@ -31,7 +30,6 @@ public class PostActivitiesDAOImpl extends GenericDAOJPAImpl<PostActivitiesEntit
     
 
     @Override
-    @Transactional
     public PostActivitiesEntity create(PostActivitiesEntity entity) {
       EntityManager em = getEntityManager();
       //force commit as non transactional object used
