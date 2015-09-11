@@ -355,6 +355,7 @@ public class OppRestService implements ResourceContainer {
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				LOG.error(e.getMessage(), e);
+				 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("An internal error has occured").build();
 			}
              return Response.ok("post created", mediaType).build();
 
