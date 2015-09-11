@@ -2,6 +2,9 @@ package org.exoplatform.salesforce.service.jpa;
 
 import org.exoplatform.commons.persistence.impl.EntityManagerService;
 import org.exoplatform.commons.persistence.impl.GenericDAOJPAImpl;
+import org.exoplatform.commons.api.persistence.ExoTransactional;
+import org.exoplatform.container.PortalContainer;
+import org.exoplatform.container.component.RequestLifeCycle;
 import org.exoplatform.salesforce.dao.PostActivitiesHandler;
 import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 
@@ -28,17 +31,20 @@ public class PostActivitiesDAOImpl extends GenericDAOJPAImpl<PostActivitiesEntit
         return entityService.getEntityManager();
     }
     
-
+    @ExoTransactional
     @Override
-    public PostActivitiesEntity create(PostActivitiesEntity entity) {
-      EntityManager em = getEntityManager();
-      //force commit as non transactional object used
-      em.getTransaction().begin();
-      em.persist(entity);
-      em.getTransaction().commit();
-   
-      return entity;
-    }
+	public PostActivitiesEntity create(PostActivitiesEntity entity) {
+		PortalContainer container = PortalContainer.getInstance();
+
+		RequestLifeCycle.begin(container);
+		EntityManager em = getEntityManager();
+		em.getTransaction().begin();
+		em.persist(entity);
+		em.getTransaction().commit();
+		RequestLifeCycle.end();
+
+		return entity;
+	}
 
     @Override
     public PostActivitiesEntity findPost(String postId) {
