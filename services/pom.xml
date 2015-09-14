@@ -137,6 +137,7 @@
 	<plugin>
 		<groupId>com.jcabi</groupId>
 		<artifactId>jcabi-maven-plugin</artifactId>
+		<version>0.13.1</version>
 	</plugin>
 </plugins>
 </build>
