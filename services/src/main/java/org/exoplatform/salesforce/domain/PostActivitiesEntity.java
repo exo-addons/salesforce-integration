@@ -10,10 +10,13 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
+import org.exoplatform.commons.api.persistence.ExoEntity;
+
 /**
  * Created by bechir on 06/08/15.
  */
 @Entity
+@ExoEntity
 @Table(name = "POST_ACTIVITIES")
 @NamedQueries({
         @NamedQuery(name="PostActivitiesEntity.findPost",
