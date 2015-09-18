@@ -33,8 +33,8 @@
   <packaging>pom</packaging>
   <description>salesforce Extension</description>
   <properties>
-    <org.exoplatform.platform.version>4.3.x-SNAPSHOT</org.exoplatform.platform.version>
-    <platform.version>4.3.x-SNAPSHOT</platform.version>
+    <org.exoplatform.platform.version>4.3.0-M3</org.exoplatform.platform.version>
+    <platform.version>4.3.0-M3</platform.version>
     <hibernate.version>4.1.12.Final</hibernate.version>
   </properties>
 
