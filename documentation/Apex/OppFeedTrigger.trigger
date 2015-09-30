@@ -15,6 +15,8 @@ Blob data=null;
              parameters +='&postType='+F.Type;
              String mentionnedNames='';
              Boolean isFirst = true;
+             URL currentURL = URL.getCurrentRequestUrl();
+system.debug('currentURL:::'+ currentURL);
              //check if the text post is a mention 
              ConnectApi.FeedElement feedElement = ConnectApi.ChatterFeeds.getFeedElement(null, F.id);
              List<ConnectApi.MessageSegment> messageSegments = feedElement.body.messageSegments;
@@ -67,8 +69,8 @@ Blob data=null;
                           data=C.VersionData;
                         }
                         parameters +='&contentID='+F.RelatedRecordId;
-                        System.debug('http://salesforce-01.no-ip.org:7443/rest/salesforce/chatterattachments/'+F.ParentId+'?'+parameters); 
-              HttpPostFileCallout.getContent('http://salesforce-01.no-ip.org:7443/rest/salesforce/chatterattachments/'+F.ParentId+'?'+parameters,data);
+                        System.debug(ConfigurationManager.CALLOUT_ENDPOINT); 
+              HttpPostFileCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/chatterattachments/'+F.ParentId+'?'+parameters,data);
               return;
                  
                   }
@@ -83,7 +85,7 @@ Blob data=null;
            
         } 
                               
-        HttpCallout.getContent('http://salesforce-01.no-ip.org:7443/rest/salesforce/chatterpost/'+F.ParentId+'?'+parameters);
+        HttpCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/chatterpost/'+F.ParentId+'?'+parameters);
     }
     
 }

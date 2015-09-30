@@ -103,58 +103,18 @@ Add Apex triggers
  
  ![Remote Site](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/remote_site.png) 
 
-2- Create an Apex class that will make the Rest call:
+2- Deploy the Apex classes and triggers  to your Production/Developer salesforce instance:
 
-![Apex Class](https://raw.github.com/exo-addons/salesforce-integration/master/documentation/readme/apex_class.png)
-```
-public class HttpCallout {
- 
-// Pass in the endpoint to be used using the string url
-   @future(callout=true)
-   public static void getContent(String url) {
- 
-// Instantiate a new http object
-    Http h = new Http();
- 
-// Instantiate a new HTTP request, specify the method (GET) as well as the endpoint
-    HttpRequest req = new HttpRequest();
-    req.setEndpoint(url);
-    req.setMethod('GET');
- 
-// Send the request
-    h.send(req);
-  }
-}
-```
-3- Create the Trigger on the correspanding object.
+You can manually deploy them by copying their contents from the [Apex Folder](https://github.com/azaoui/salesforce-integration/tree/master/documentation/Apex)
 
- e.g:
-```
-trigger mytrigger on Opportunity (after update) {
-    //List<String> oldvalues = new List<String>();
-    //List<String> newvalues = new List<String>();
-    String parameters = '';
-    for (Opportunity opp : Trigger.new) {
-        // Access the "old" record by its ID in Trigger.oldMap
-        Opportunity oldOpp = Trigger.oldMap.get(opp.Id);
-        
-            //oldvalues.add(oldOpp.Id); 
-            //oldvalues.add(oldOpp.Name);
-            //newvalues.add(opp.Name);  
-        parameters += 'oldName='+EncodingUtil.urlEncode(oldOpp.Name, 'UTF-8');
-        parameters += '&newName='+EncodingUtil.urlEncode(opp.Name, 'UTF-8');
-        if(oldOpp.stageName != opp.stageName) {
-            parameters += '&oldstageName='+oldOpp.stageName;
-            parameters += '&newstageName='+opp.stageName;
-        }        
-        if(oldOpp.Amount != opp.Amount) {
-            parameters += '&oldamount='+oldOpp.Amount;
-            parameters += '&newamount='+opp.Amount;
-        }
-        HttpCallout.getContent('http://serverName:8080/rest/salesforce/addupdatecomment/'+opp.Id+'?'+parameters);
-    }
-}
-```
+Or simply you can use the GitHub Salesforce Deployment tool, by clicking on the button below:
+
+<a href="https://githubsfdeploy.herokuapp.com?owner=exo-addons&repo=salesforce-integration">
+  <img alt="Deploy to Salesforce"
+       src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/src/main/webapp/resources/img/deploy.png">
+</a>
+
+
 
 Use Salesforce Integration extension:
 ===============
