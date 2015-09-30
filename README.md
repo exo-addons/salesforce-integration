@@ -114,6 +114,15 @@ Or simply you can use the GitHub Salesforce Deployment tool, by clicking on the 
        src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/src/main/webapp/resources/img/deploy.png">
 </a>
 
+Once deployed, you will need to edit "ConfigurationManager" class and set the "CALLOUT_ENDPOINT" to point to your 
+server:
+
+    public static String CALLOUT_ENDPOINT{
+        get{
+            return 'http://plfent-4.3.x-pkgpriv-salesforce-integration-snapshot.acceptance5.exoplatform.org/rest/';
+        }
+    }
+
 
 
 Use Salesforce Integration extension:
