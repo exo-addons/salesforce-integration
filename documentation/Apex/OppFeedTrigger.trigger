@@ -13,7 +13,7 @@ Blob data=null;
             System.debug('the opportunity name is: '+oppName);
              parameters +='&postId='+F.id;
              parameters +='&postType='+F.Type;
-             parameters +='&posterId='+F.InsertedById;
+             parameters +='&posterId='+F.CreatedById;
              String mentionnedNames='';
              Boolean isFirst = true;
              String mentionnedIds='';
