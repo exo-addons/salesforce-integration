@@ -13,10 +13,14 @@ Blob data=null;
             System.debug('the opportunity name is: '+oppName);
              parameters +='&postId='+F.id;
              parameters +='&postType='+F.Type;
+             parameters +='&posterId='+F.InsertedById;
              String mentionnedNames='';
              Boolean isFirst = true;
-             URL currentURL = URL.getCurrentRequestUrl();
-system.debug('currentURL:::'+ currentURL);
+             String mentionnedIds='';
+             string baseUrl = System.URL.getSalesforceBaseUrl().toExternalForm();
+             parameters +='&baseUrl='+baseUrl;
+            // URL currentURL = URL.getCurrentRequestUrl();
+             
              //check if the text post is a mention 
              ConnectApi.FeedElement feedElement = ConnectApi.ChatterFeeds.getFeedElement(null, F.id);
              List<ConnectApi.MessageSegment> messageSegments = feedElement.body.messageSegments;
@@ -28,9 +32,11 @@ system.debug('currentURL:::'+ currentURL);
                                     //System.debug('Text message:'+mentionSegment.name);
                                     if(isFirst) {
                                     mentionnedNames+=mentionSegment.name;
+                                    mentionnedIds+=mentionSegment.record.id;
                                     isFirst=false;
                                     }else{
                                      mentionnedNames+=','+mentionSegment.name;
+                                     mentionnedIds+=','+mentionSegment.record.id;
                                     }
                                     
                                     System.debug(' the mentionned Name is:'+mentionSegment.name);
@@ -38,8 +44,10 @@ system.debug('currentURL:::'+ currentURL);
                                 }
                                 
                         }
-                        if(String.isNotEmpty(mentionnedNames))  
+                        if(String.isNotEmpty(mentionnedNames))  {
                         parameters += '&mentionned='+EncodingUtil.urlEncode(mentionnedNames, 'UTF-8');
+                        parameters += '&mentionnedIds='+EncodingUtil.urlEncode(mentionnedIds, 'UTF-8');
+                        }
                 if(F.Type=='TextPost')
                 {
                 System.debug (UserInfo.getName()+ ' posted new message'+  F.body);

@@ -288,6 +288,9 @@ public class OppRestService implements ResourceContainer {
 				@QueryParam("mentionned") String mentionned,
 				@QueryParam("contentPost") String contentPost,
 				@QueryParam("contentPostText") String contentPostText,
+				@QueryParam("posterId") String posterId,
+				@QueryParam("mentionnedIds") String mentionnedIds,
+				@QueryParam("baseUrl") String baseUrl,
 				@QueryParam("postedlink") String postedlink) throws Exception {
 			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
 			String[] supportedType = new String[] {"TextPost","LinkPost"};
@@ -300,6 +303,8 @@ public class OppRestService implements ResourceContainer {
 			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
 			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
+			String profile_page = baseUrl+"/_ui/core/userprofile/UserProfilePage?u=";
+			String poster_link =profile_page+postId;
 			if (space == null) {
 				return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
 			}
@@ -312,35 +317,22 @@ public class OppRestService implements ResourceContainer {
 			Profile oppProfile = spaceIdentity.getProfile();
 			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
 			ExoSocialActivity activity = new ExoSocialActivityImpl();
-			// activity.setTitle(URLDecoder.decode(oppName, "UTF-8"));
 			 activity.setUserId(salesforceIdentity.getId());
-             //activity.setType("");
-
-			String activitybody="<a href=\"#\">"+poster+"</a>";
+			String activitybody="<a href=\""
+					+poster_link+ "\">"+poster+"</a>";
 			if(postType.equals("TextPost")){
 				if(mentionned!=null){
 					String[] mentionnedList = mentionned.split(",");
+					String[] mentionnedListIds = mentionnedIds.split(",");
 					for(int i=0 ; i<mentionnedList.length;i++){
-						textPost =StringUtils.replace(textPost, "@"+mentionnedList[i], "<a href=\"#\">"+"@"+mentionnedList[i]+"</a>",1);
-						//StringUtils.replace(text, searchString, replacement, max)e
-						//StringUtils.replaceChars(str, searchChar, replaceChar)
-						System.out.println(mentionnedList[i]);
+						textPost =StringUtils.replace(textPost, "@"+mentionnedList[i], "<a href=\""
+							+	mentionnedListIds[i]+ "\">"+"@"+mentionnedList[i]+"</a>",1);
 						
 					}
-				
-				//textPost=StringUtils.substringAfter("@"+mentionned, textpost);
-				//textPost= StringUtils.substringAfter(textPost, "@"+mentionned);
-				//activitybody+=textPost;
-				
 				
 				}
 				activitybody+=" posted new message: "+textPost;
 			}
-			/*else if(postType.equals("ContentPost")){
-				
-				activitybody+=" posted new file : "+"<a href=\"#\">"+contentPost+"</a>" +" " +contentPostText;
-			}
-			*/
 			else if(postType.equals("LinkPost")){
 				
 				activitybody+=" posted new link : "+postedlink;
