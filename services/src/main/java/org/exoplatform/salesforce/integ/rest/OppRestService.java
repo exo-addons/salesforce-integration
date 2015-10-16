@@ -304,7 +304,7 @@ public class OppRestService implements ResourceContainer {
 			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
 			String profile_page = baseUrl+"/_ui/core/userprofile/UserProfilePage?u=";
-			String poster_link =profile_page+postId;
+			String poster_link =profile_page+posterId;
 			if (space == null) {
 				return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
 			}
@@ -325,8 +325,9 @@ public class OppRestService implements ResourceContainer {
 					String[] mentionnedList = mentionned.split(",");
 					String[] mentionnedListIds = mentionnedIds.split(",");
 					for(int i=0 ; i<mentionnedList.length;i++){
+						String montionned_link=profile_page+mentionnedListIds[i];
 						textPost =StringUtils.replace(textPost, "@"+mentionnedList[i], "<a href=\""
-							+	mentionnedListIds[i]+ "\">"+"@"+mentionnedList[i]+"</a>",1);
+							+	montionned_link+ "\">"+"@"+mentionnedList[i]+"</a>",1);
 						
 					}
 				
