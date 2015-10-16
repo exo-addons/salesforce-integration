@@ -21,6 +21,7 @@ import org.exoplatform.salesforce.integ.connector.entity.ContentVersion;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet;
 import org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage;
+import org.exoplatform.salesforce.integ.util.RequestKeysConstants;
 import org.exoplatform.salesforce.integ.util.Utils;
 import org.exoplatform.salesforce.service.PostActivitiesService;
 import org.exoplatform.services.jcr.RepositoryService;
@@ -363,6 +364,9 @@ public class OppRestService implements ResourceContainer {
 				@QueryParam("postID") String postID,
 				@QueryParam("poster") String poster,
 				@QueryParam("commentPost") String commentPost,
+				@QueryParam("posterId") String posterId,
+				@QueryParam("mentionnedIds") String mentionnedIds,
+				@QueryParam("baseUrl") String baseUrl,
 				@QueryParam("mentionned") String mentionned) throws Exception {
 			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
 			oppName=URLDecoder.decode(oppName, "UTF-8");
@@ -377,7 +381,8 @@ public class OppRestService implements ResourceContainer {
 				return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
 			}
 			
-         
+			String profile_page = baseUrl+RequestKeysConstants.SF_USER__PROFILE_PAGE;
+			String poster_link =profile_page+posterId;
 			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
 			Profile oppProfile = spaceIdentity.getProfile();
 			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
@@ -395,12 +400,16 @@ public class OppRestService implements ResourceContainer {
 			// activity.setUserId(salesforceIdentity.getId());
              //activity.setType("");
 
-			String activitybody="<a href=\"#\">"+poster+"</a>";
+			String activitybody="<a href=\""
+					+poster_link+ "\">"+poster+"</a>";
 			//if(postType.equals("TextPost")){
 				if(mentionned!=null){
 					String[] mentionnedList = mentionned.split(",");
+					String[] mentionnedListIds = mentionnedIds.split(",");
 					for(int i=0 ; i<mentionnedList.length;i++){
-						commentPost =StringUtils.replace(commentPost, "@"+mentionnedList[i], "<a href=\"#\">"+"@"+mentionnedList[i]+"</a>",1);
+						String montionned_link=profile_page+mentionnedListIds[i];
+						commentPost =StringUtils.replace(commentPost, "@"+mentionnedList[i], "<a href=\""
+								+montionned_link+ "\">"+"@"+mentionnedList[i]+"</a>",1);
 						//StringUtils.replace(text, searchString, replacement, max)e
 						//StringUtils.replaceChars(str, searchChar, replaceChar)
 						System.out.println(mentionnedList[i]);
@@ -746,6 +755,9 @@ public class OppRestService implements ResourceContainer {
 				@QueryParam("mentionned") String mentionned,
 				@QueryParam("contentPost") String contentPost,
 				@QueryParam("contentID") String contentID,
+				@QueryParam("posterId") String posterId,
+				@QueryParam("mentionnedIds") String mentionnedIds,
+				@QueryParam("baseUrl") String baseUrl,
 				@QueryParam("contentPostText") String contentPostText) throws RepositoryException, IOException{
             	String REPOSITORY = "repository";
 	    	String WORKSPACE = "collaboration";
@@ -758,6 +770,8 @@ public class OppRestService implements ResourceContainer {
 			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
 			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
+			String profile_page = baseUrl+RequestKeysConstants.SF_USER__PROFILE_PAGE;
+			String poster_link =profile_page+posterId;
 			if (space == null) {
 				return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
 			}
@@ -793,10 +807,16 @@ public class OppRestService implements ResourceContainer {
 			
 			activity.setType(UIDocActivity.ACTIVITY_TYPE);
 			Map<String, String> templateParams = new HashMap<String, String>();
+			String activitybody="<a href=\""
+					+poster_link+ "\">"+poster+"</a>"
+							+ "posted new file "+contentPostText;
 			if(mentionned!=null){
 				String[] mentionnedList = mentionned.split(",");
+				String[] mentionnedListIds = mentionnedIds.split(",");
 				for(int i=0 ; i<mentionnedList.length;i++){
-					contentPostText =StringUtils.replace(contentPostText, "@"+mentionnedList[i], "<a href=\"#\">"+"@"+mentionnedList[i]+"</a>",1);
+					String montionned_link=profile_page+mentionnedListIds[i];
+					activitybody =StringUtils.replace(contentPostText, "@"+mentionnedList[i], "<a href=\""
+							+montionned_link+ "\">"+"@"+mentionnedList[i]+"</a>",1);
 					
 				}
 			}
@@ -804,7 +824,7 @@ public class OppRestService implements ResourceContainer {
 			
 			templateParams.put(UIDocActivity.WORKSPACE,WORKSPACE);
 			templateParams.put(UIDocActivity.REPOSITORY,REPOSITORY);
-			templateParams.put(UIDocActivity.MESSAGE, contentPostText);      
+			templateParams.put(UIDocActivity.MESSAGE, activitybody);      
 			//templateParams.put(UIDocActivity.DOCLINK,"/portal/rest/jcr/repository/collaboration/Users/t___/th___/tho___/thomas/Private/Documents/samir.pdf, DOCNAME=samir.pdf, DOCPATH=/Users/t___/th___/tho___/thomas/Private/Documents/samir.pdf");
 			templateParams.put(UIDocActivity.DOCNAME,contentPost);
 			templateParams.put(UIDocActivity.DOCUMENT_TITLE,contentPost);
@@ -816,7 +836,6 @@ public class OppRestService implements ResourceContainer {
 			
 			
 			activity.setUserId(salesforceIdentity.getId());
-			String activitybody="";
 			activitybody+=" posted new file : "+"<a href=\"#\">"+contentPost+"</a>" +" " +contentPostText;			
 			activity.setTitle(activitybody);
 			activity.setBody(activitybody);

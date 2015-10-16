@@ -14,4 +14,5 @@ public class  RequestKeysConstants {
 	  public static final String REDIRECT_URI_KEY = "redirect_uri";
 	  public static final String INSTANCE_URL = "instance_url";
 	  public static final String SF_PROD = "https://login.salesforce.com";
+	  public static final String SF_USER__PROFILE_PAGE="/_ui/core/userprofile/UserProfilePage?u=";
 }
