@@ -63,7 +63,29 @@
                             <string>publish-first-publication</string>
                         </field>
                     </object>
-                </object-param>        
+                </object-param>
+                <object-param>
+                    <name>Opportunity Data</name>
+                    <description>Opportunity Data</description>
+                    <object type="org.exoplatform.services.wcm.extensions.deployment.WCMPublicationDeploymentDescriptor">
+                        <field name="target">
+                            <object type="org.exoplatform.services.deployment.DeploymentDescriptor$Target">
+                                <field name="workspace">
+                                    <string>collaboration</string>
+                                </field>
+                                <field name="nodePath">
+                                    <string>/sites/shared/web contents/site artifacts</string>
+                                </field>
+                            </object>
+                        </field>
+                        <field name="sourcePath">
+                            <string>war:/conf/salesforce/wcm/artifacts/resources/OpportunityData.xml</string>
+                        </field>
+                        <field name="cleanupPublicationType">
+                            <string>publish-first-publication</string>
+                        </field>
+                    </object>
+                </object-param>
             </init-params>
         </component-plugin>
     </external-component-plugins>

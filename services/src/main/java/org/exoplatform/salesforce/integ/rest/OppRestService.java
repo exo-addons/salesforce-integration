@@ -2,7 +2,6 @@ package org.exoplatform.salesforce.integ.rest;
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -48,6 +47,7 @@ import org.exoplatform.social.service.rest.Util;
 import org.exoplatform.social.webui.activity.UIDefaultActivity;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.jcr.Node;
@@ -62,7 +62,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -225,6 +224,33 @@ public class OppRestService implements ResourceContainer {
 			}
 			
 		}
+
+	@GET
+	@Path("getopportunity/{SpaceName}")
+	public Response getOpportunityData(
+			@Context HttpServletRequest request,
+			@PathParam("SpaceName") String SpaceName) throws JSONException {
+		Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
+		if (sourceIdentity == null)
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		SpaceService spaceService = Util.getSpaceService(portalContainerName);
+		IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
+		Space dealroom = spaceService.getSpaceByPrettyName(SpaceName);
+		if(dealroom != null) {
+			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, dealroom.getPrettyName(), false);
+			Profile oppProfile = spaceIdentity.getProfile();
+			if(oppProfile != null) {
+				JSONObject json = new JSONObject();
+				json.put("opportunityName", oppProfile.getProperty("opportunityName").toString());
+				json.put("description", oppProfile.getProperty("description").toString());
+				json.put("CloseDate", oppProfile.getProperty("CloseDate").toString());
+				json.put("ammount", oppProfile.getProperty("ammount").toString());
+				json.put("stageName", oppProfile.getProperty("stageName").toString());
+				return Response.ok(json.toString(),MediaType.APPLICATION_JSON).build();
+			}
+		}
+		return Response.status(Response.Status.NO_CONTENT).build();
+	}
 
 		@GET
 		@Path("addupdatecomment/{oppName}")
