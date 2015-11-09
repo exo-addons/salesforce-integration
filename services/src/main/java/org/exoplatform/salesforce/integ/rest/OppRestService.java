@@ -2,8 +2,10 @@ package org.exoplatform.salesforce.integ.rest;
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FilenameUtils;
@@ -15,6 +17,7 @@ import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivityBuilder;
 import org.exoplatform.salesforce.integ.connector.entity.AggregateResult;
+import org.exoplatform.salesforce.integ.connector.entity.Attachment;
 import org.exoplatform.salesforce.integ.connector.entity.ContentDocumentLink;
 import org.exoplatform.salesforce.integ.connector.entity.ContentVersion;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
@@ -62,6 +65,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -635,7 +639,12 @@ public class OppRestService implements ResourceContainer {
 				
 			
 				String qq="SELECT Id, ContentDocumentId  FROM ContentDocumentLink where LinkedEntityId="+ "\'"+oppID+"\' LIMIT 100";
+				//SELECT Id, ParentId, Name, ContentType, Body FROM Attachment where ParentId='006240000064jn0'
+				String qqAttachement="SELECT Id, ParentId, Name, ContentType, Body FROM Attachment where ParentId="+ "\'"+oppID+"\' LIMIT 100";
+				QueryResult<Attachment> queryAttachement=api.query(qqAttachement, Attachment.class);
 				QueryResult<ContentDocumentLink> queryDocID=api.query(qq, ContentDocumentLink.class);
+				if(queryAttachement.getTotalSize()>0)
+					importAttachement(queryAttachement,accesstoken,nodepath,api,instance_url,workspaceName,oppName);
 				if(queryDocID.getTotalSize()>0){
 					List<ContentDocumentLink> contentsLink = queryDocID.getRecords();
 					Iterator<ContentDocumentLink> contentsLinkIt = contentsLink.iterator();
@@ -768,7 +777,142 @@ public class OppRestService implements ResourceContainer {
 	    }
 	    
 	    
-	    @POST
+	    private void importAttachement(
+				QueryResult<Attachment> queryAttachement, String accesstoken, String nodepath, ForceApi api, String instance_url, String workspaceName, String oppName) {
+
+			List<Attachment> oppAttachement = queryAttachement.getRecords();
+			Iterator<Attachment> attachementIt = oppAttachement.iterator();
+			List<String> oppAttachementID = new ArrayList<String>();
+			
+			 boolean firstCall=false;
+			while (attachementIt.hasNext()) {
+				String id =attachementIt.next().getId();
+				oppAttachementID.add(id);
+				LOG.info("attachement id--->:"+id);
+			}
+			 nodepath = StringUtils.substringAfter(nodepath, "/");
+			for (int i = 0; i < oppAttachementID.size(); i++) {
+
+				if(queryAttachement.getTotalSize()>0){
+					LOG.info(queryAttachement.getRecords().get(0).getBodyUrl());
+					HttpClient	httpclient1= new HttpClient();
+					String VD=queryAttachement.getRecords().get(0).getBodyUrl();
+					String path=queryAttachement.getRecords().get(0).getName();
+					GetMethod get = new GetMethod(instance_url+ VD);
+					get.setRequestHeader("Authorization", "OAuth " + accesstoken);
+					try {
+						httpclient1.executeMethod(get);
+					} catch (HttpException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					if (get.getStatusCode() == HttpStatus.SC_OK) {
+							 byte[] bodyByte = null;
+							try {
+								bodyByte = get.getResponseBody();
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							SessionProvider sessionProvider = SessionProvider.createSystemProvider();
+							String workspace = (workspaceName!=null) ? workspaceName : "collaboration"; 				
+							Session session = null;
+							try {
+								session = sessionProvider.getSession(workspace,
+								        repositoryService.getCurrentRepository());
+							} catch (RepositoryException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							
+							try {
+							
+							///Groups/spaces/united_oil_office_portable_generators/Documents/united_oil_office_portable_generators/xxxx.png
+							
+
+								Node rootNode = session.getRootNode().getNode(nodepath);
+							 // Node file = rootNode.addNode("file", "nt:file");
+							 if (!rootNode.hasNode(oppName)) {
+							    rootNode.addNode(oppName, "nt:folder");
+							   rootNode.save();
+							}
+
+							//check if the doc already imported from SLF to same path
+							Node oppNode = rootNode.getNode(oppName);
+							Node oppIDs = null;
+							if(!oppNode.hasNode("oppIDs"))
+							{
+								oppIDs =oppNode.addNode("oppIDs","nt:folder");
+							
+								oppIDs.canAddMixin("exo:hiddenable");
+								oppIDs.addMixin("exo:hiddenable");
+								oppNode.save();
+								
+								
+							}
+							oppIDs =oppNode.getNode("oppIDs");
+							
+								if(oppIDs.getNodes().getSize()==0){
+									oppIDs.addNode(oppAttachementID.get(i),"nt:folder");
+									oppIDs.save();
+									firstCall=true;
+								}
+								
+								//dirty quick check , will be replaced
+								
+								 NodeIterator nodeIter = oppIDs.getNodes() ;
+								 while(nodeIter.hasNext()) {
+									 Node id = nodeIter.nextNode() ;
+									 if(!id.getName().equals(oppAttachementID.get(i))||firstCall){
+											String baseName = FilenameUtils.getBaseName(path);
+											MimeTypeResolver resolver = new MimeTypeResolver();
+											String type = resolver.getMimeType(path);
+
+											Node fileNode = null;
+											 if(!oppNode.hasNode(path)){
+											fileNode = oppNode.addNode(path, "nt:file");
+											
+											Node jcrContent = fileNode.addNode("jcr:content", "nt:resource");
+											jcrContent.setProperty("jcr:data",new ByteArrayInputStream(bodyByte));
+											jcrContent.setProperty("jcr:lastModified",Calendar.getInstance());
+											jcrContent.setProperty("jcr:encoding", "UTF-8");
+											jcrContent.setProperty("jcr:mimeType", type);
+											 }
+											 if(!firstCall&&!oppIDs.hasNode(oppAttachementID.get(i)))
+											 {
+											    oppIDs.addNode(oppAttachementID.get(i),"nt:folder");
+											    oppIDs.save();
+											 }
+											 firstCall=false;
+											oppNode.save();
+											session.save();
+										 }
+										 
+									 }
+								
+							
+
+					         
+
+							session.save();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+					}
+
+				}
+			}
+
+		
+			
+		}
+
+		@POST
 	    @Path("/chatterattachments/{oppID}")
 	    @Consumes(MediaType.MULTIPART_FORM_DATA)
 	    @Produces(MediaType.TEXT_PLAIN)
