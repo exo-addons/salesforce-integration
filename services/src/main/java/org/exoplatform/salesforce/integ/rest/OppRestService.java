@@ -132,7 +132,7 @@ public class OppRestService implements ResourceContainer {
 				}
 				oppName = opp.getName();
 				if(spaceService.getSpaceByPrettyName(SpaceUtils.cleanString(oppName)) != null) {
-					return Response.seeOther(URI.create(Util.getBaseUrl() + "/"+Utils.getSpaceUrl(oppName))).build();
+					return Response.seeOther(URI.create(Util.getBaseUrl() + "/"+Utils.getSpaceUrl(SpaceUtils.cleanString(oppName)))).build();
 				}
 				 String qq="SELECT COUNT(Id) FROM OpportunityFeed where ParentId="+ "\'"+oppID+"\'";
 					QueryResult<AggregateResult> totalFeed=api.query(qq, AggregateResult.class);
