@@ -132,7 +132,7 @@ public class OppRestService implements ResourceContainer {
 				}
 				oppName = opp.getName();
 				if(spaceService.getSpaceByPrettyName(SpaceUtils.cleanString(oppName)) != null) {
-					return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
+					return Response.seeOther(URI.create(Util.getBaseUrl() + "/"+Utils.getSpaceUrl(oppName))).build();
 				}
 				 String qq="SELECT COUNT(Id) FROM OpportunityFeed where ParentId="+ "\'"+oppID+"\'";
 					QueryResult<AggregateResult> totalFeed=api.query(qq, AggregateResult.class);
@@ -611,6 +611,7 @@ public class OppRestService implements ResourceContainer {
 	            String instance_url=null;
 	    	 ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
 	    	 ExoSocialActivity activity = new ExoSocialActivityImpl();
+	    	 workspaceName=(workspaceName==null)?"collaboration":workspaceName;
             if (sourceIdentity == null)
 				return Response.status(Response.Status.UNAUTHORIZED).build();
 
@@ -627,7 +628,31 @@ public class OppRestService implements ResourceContainer {
 				}
 			}
 
+			if(accesstoken==null||instance_url==null){
+				request.getSession().setAttribute("oppName", oppName);
+				request.getSession().setAttribute("nodepath", nodepath);
+				request.getSession().setAttribute("workspaceName", workspaceName);
+				return Response.temporaryRedirect(URI.create("/salesforce-extension/oauth?initialURI=/portal/private/rest/salesforce"
+						+ "/get/contentdocuments/"+oppName+"?"+"nodepath="+nodepath+"&amp;workspaceName="+workspaceName)).build();
+			}
+
 			if(accesstoken!=null&&instance_url!=null){
+				
+				if(request.getSession().getAttribute(oppName)!=null)
+				{
+					oppName = (String) (request.getSession().getAttribute("oppName"));
+					request.getSession().removeAttribute(oppName);
+				}
+				if(request.getSession().getAttribute(nodepath)!=null)
+				{
+					nodepath = (String) (request.getSession().getAttribute("nodepath"));
+					request.getSession().removeAttribute(nodepath);
+				}
+				if(request.getSession().getAttribute(workspaceName)!=null)
+				{
+					workspaceName = (String) (request.getSession().getAttribute("workspaceName"));
+					request.getSession().removeAttribute(workspaceName);
+				}
 			Space opp=spaceService.getSpaceByPrettyName(oppName);
 			if(opp!=null){
 				List<String> oppDocID = new ArrayList<String>();

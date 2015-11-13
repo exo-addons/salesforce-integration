@@ -4,6 +4,7 @@ import com.force.api.ApiConfig;
 import com.force.api.ApiSession;
 import com.force.api.ApiVersion;
 import com.force.api.ForceApi;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -22,6 +23,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 import java.net.URLEncoder;
 
@@ -42,17 +44,12 @@ public class OAuthServlet extends HttpServlet {
 	private String redirectUri = null;
 	private String authUrl = null;
 	private String tokenUrl = null;
-	private String tempOppID = null;
-	private String refreshtoken = null;
-	public static String tk_url;
-	public static String tk_tok;
 	public static String environment;
-	private String initialURI =null;
+
 	
 
 	public void init() throws ServletException {
 		try {
-			// it's better to use filter in next step for all auth request
 			clientId=System.getProperty("oauth.salesforce.clientId");
 			if (System.getProperty("oauth.salesforce.clientId")==null) {
 				clientId = "3MVG9Rd3qC6oMalVaRGdPD6BFFD89SgIXKOVxc2nwIPmdYDkFPuXBLWpPTz2D685IIG.DFVYEwYEdIqo9B827";
@@ -93,34 +90,23 @@ public class OAuthServlet extends HttpServlet {
 		clientId=System.getProperty("oauth.salesforce.clientId");
 		redirectUri=System.getProperty("oauth.salesforce.redirectUri");
 		clientSecret =System.getProperty("oauth.salesforce.clientSecret") ;
-		
+		//use the session to store initial param to be re-used after callback from SF 
+		String initialURI=(String) (request.getSession().getAttribute("initialURI")!=null ?request.getSession().getAttribute("initialURI"):
+			request.getParameter("initialURI"));
+		String tempOppID=(String) (request.getSession().getAttribute("oppID")!=null ?request.getSession().getAttribute("oppID"):
+			request.getParameter("oppID"));
+		if(request.getParameter("initialURI")!=null)
+			request.getSession().setAttribute("initialURI", request.getParameter("initialURI"));
+		if(request.getParameter("oppID")!=null)
+			request.getSession().setAttribute("oppID", request.getParameter("oppID"));
 		LOG.info("Begin OAuth");
-		tempOppID = (tempOppID == null) ? request.getParameter("oppID")
-				: tempOppID;
-		initialURI = (initialURI == null) ? request.getParameter("initialURI")
-				: initialURI;
-		
 		String accessToken = (String) request.getSession().getAttribute(
 				ACCESS_TOKEN);
 		String instanceUrl = (String) request.getSession().getAttribute(
 				RequestKeysConstants.INSTANCE_URL);
-		// request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
-		// request.getParameter("oppID"));
-
 		if (accessToken == null || instanceUrl == "") {
-
-			// request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
-			// request.getParameter("oppID"));
-
-			/* get the request query oppID=00624000003M6ac */
-			request.getQueryString();
-			request.getParameter("oppID");
-
 			if (request.getRequestURI().endsWith("oauth")) {
 				// we need to send the user to authorize
-				request.getSession().setAttribute(
-						RequestKeysConstants.OPPORTUNITY_ID, tempOppID);
-
 				response.sendRedirect(authUrl + "&id=" + tempOppID);
 				return;
 			} else {
@@ -132,10 +118,7 @@ public class OAuthServlet extends HttpServlet {
 				HttpClient httpclient = new HttpClient();
 
 				PostMethod post = new PostMethod(tokenUrl);
-
-				request.getSession().setAttribute(
-						RequestKeysConstants.OPPORTUNITY_ID, tempOppID);
-
+				
 				post.addParameter(RequestKeysConstants.CODE_KEY, code);
 				post.addParameter(RequestKeysConstants.GRANT_TYPE_KEY,
 						RequestKeysConstants.AUTHORIZATION_CODE);
@@ -144,8 +127,6 @@ public class OAuthServlet extends HttpServlet {
 						clientSecret);
 				post.addParameter(RequestKeysConstants.REDIRECT_URI_KEY,
 						redirectUri);
-				// post.addParameter(RequestKeysConstants.REDIRECT_URI_KEY,
-				// redirectUri);
 
 				try {
 					httpclient.executeMethod(post);
@@ -180,14 +161,7 @@ public class OAuthServlet extends HttpServlet {
 				}
 			}
 
-			// QueryResult<Account> iniResult =
-
-
-
 			request.getSession().setAttribute(ACCESS_TOKEN, accessToken);
-			// request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
-			// request.getParameter("oppID"));
-
 			request.getSession().setAttribute(
 					RequestKeysConstants.INSTANCE_URL, instanceUrl);
 		}
@@ -218,24 +192,21 @@ public class OAuthServlet extends HttpServlet {
 			inst_cookie.setPath("/");
 			response.addCookie(inst_cookie);
 		}
-		request.getSession().setAttribute(RequestKeysConstants.OPPORTUNITY_ID,
-				request.getParameter("oppID"));
 
-		
-		if(initialURI!=null){
-			String tempInitialURI=initialURI;
-			initialURI=null; //re-inti
-			response.sendRedirect(tempInitialURI+"?status=oauth");
-			
+		if (initialURI != null) {
+            request.getSession().removeAttribute("initialURI");//clean the session
+			response.sendRedirect(initialURI);
+			return; // <-- avoid IllegalStateException , ensures that no content is adedd to the response further 
+
 		}
-		if(tempOppID!=null)
-		{
-			String s = tempOppID;
-			tempOppID = null;
-		response.sendRedirect("/salesforce-extension/opp" + "?id=" + s);
-		}
-		//else
-			//response.sendRedirect("/portal");
+		if (tempOppID != null) {
+			 request.getSession().removeAttribute("oppID");
+			response.sendRedirect("/salesforce-extension/opp" + "?oppID="
+					+ tempOppID);
+			return;
+		} else
+			response.sendRedirect("/portal");
+		return;
 			
 	}
 

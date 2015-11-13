@@ -126,6 +126,7 @@
             </init-params>
         </component-plugin>
     </external-component-plugins>-->
+<!--    
     	<external-component-plugins>
 		<target-component>org.exoplatform.web.filter.ExtensibleFilter</target-component>
 		<component-plugin profiles="all">
@@ -151,7 +152,7 @@
 			</init-params>
 		</component-plugin>
 	</external-component-plugins>
-
+-->
     <!-- configure activies plugin -->
     <external-component-plugins>
         <target-component>org.exoplatform.webui.ext.UIExtensionManager</target-component>
