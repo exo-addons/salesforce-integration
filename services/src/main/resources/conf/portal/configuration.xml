@@ -25,6 +25,25 @@
 		<type>org.exoplatform.commons.persistence.impl.EntityManagerService</type>
 	</component>
 
+	<component>
+		<key>org.exoplatform.salesforce.config.ExoSalesForceClientService</key>
+		<type>org.exoplatform.salesforce.config.ExoSalesForceClientService</type>
+		<init-params>
+			<value-param>
+				<name>redirectUri</name>
+				<value>${oauth.salesforce.redirectUri}</value>
+			</value-param>
+			<value-param>
+				<name>clientSecret</name>
+				<value>${oauth.salesforce.clientSecret}</value>
+			</value-param>
+			<value-param>
+				<name>clientId</name>
+				<value>${oauth.salesforce.clientId}</value>
+			</value-param>
+		</init-params>
+	</component>
+
     <component>
         <key>org.exoplatform.salesforce.service.DAOHandler</key>
         <type>org.exoplatform.salesforce.service.jpa.DAOHandlerJPAImpl</type>
