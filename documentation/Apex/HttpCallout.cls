@@ -10,6 +10,11 @@ public class HttpCallout {
 // Instantiate a new HTTP request, specify the method (GET) as well as the endpoint
     HttpRequest req = new HttpRequest();
     req.setEndpoint(url);
+   
+    Blob key = EncodingUtil.base64Decode('mRMjHmlC1C+1L/Dkz8EJuw==');
+    Blob cipherText = Crypto.encryptWithManagedIV('AES128', key, Blob.valueOf(ConfigurationManager.SID));
+    String strToken = 'Basic ' +EncodingUtil.base64Encode(cipherText);
+    req.setHeader('Authorization',strToken);
     req.setMethod('GET');
  
 

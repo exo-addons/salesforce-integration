@@ -14,6 +14,14 @@ public class ConfigurationManager{
         }
     }
 
+//str token to set in the request header
+    public static String SID{
+        get{
+            return 'AC501b74a568e3599440e5303377fae7b9'; 
+        }
+    }
+
+
     //user/profile centric debug mode
     public static Boolean DEBUG_MODE{
         get{

@@ -15,4 +15,5 @@ public class  RequestKeysConstants {
 	  public static final String INSTANCE_URL = "instance_url";
 	  public static final String SF_PROD = "https://login.salesforce.com";
 	  public static final String SF_USER__PROFILE_PAGE="/_ui/core/userprofile/UserProfilePage?u=";
+	  public static final String SF_SECURITY_SID="AC501b74a568e3599440e5303377fae7b9";
 }

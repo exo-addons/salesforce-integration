@@ -2,6 +2,7 @@ package org.exoplatform.salesforce.integ.rest;
 
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -62,6 +63,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -326,6 +328,30 @@ public class OppRestService implements ResourceContainer {
 			textPost =(textPost!=null)? URLDecoder.decode(textPost, "UTF-8"):null;
 			contentPost=(contentPost!=null)? URLDecoder.decode(contentPost, "UTF-8"):null;
 			mentionned=(mentionned!=null)? URLDecoder.decode(mentionned, "UTF-8"):null;
+			String authcriptedcode=null;
+			byte[] checkSring =null;
+			String authorization=null;
+			 authorization = request.getHeader("Authorization");
+			if (authorization == null || !authorization.startsWith("Basic"))
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+	
+			try {
+	
+				authcriptedcode = authorization.substring("Basic".length()).trim();
+	
+				checkSring = Utils.decryptBase64EncodedWithManagedIV(
+						authcriptedcode, "mRMjHmlC1C+1L/Dkz8EJuw==");
+			} catch (Exception e) {
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+			}
+			if (checkSring == null
+					|| !(new String(checkSring, "UTF-8"))
+							.equals(RequestKeysConstants.SF_SECURITY_SID)) {
+	
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+			}
+
+			
 			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
 			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
 			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
