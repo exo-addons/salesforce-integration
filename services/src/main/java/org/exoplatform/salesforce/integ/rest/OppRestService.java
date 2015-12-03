@@ -269,6 +269,31 @@ public class OppRestService implements ResourceContainer {
 				@QueryParam("olddescription") String olddeschhhription,
 				@QueryParam("newdescription") String newdescription) throws Exception {
 			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
+			
+			String authcriptedcode=null;
+			byte[] checkSring =null;
+			String authorization=null;
+			 authorization = request.getHeader("Authorization");
+			if (authorization == null || !authorization.startsWith("Basic"))
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+	
+			try {
+	
+				authcriptedcode = authorization.substring("Basic".length()).trim();
+	
+				checkSring = Utils.decryptBase64EncodedWithManagedIV(
+						authcriptedcode, "mRMjHmlC1C+1L/Dkz8EJuw==");
+			} catch (Exception e) {
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+			}
+			if (checkSring == null
+					|| !(new String(checkSring, "UTF-8"))
+							.equals(RequestKeysConstants.SF_SECURITY_SID)) {
+	
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+			}
+
+			
 			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
 			Space space = spaceService.getSpaceByDisplayName(oppName);
 			if(space == null) {
@@ -421,6 +446,29 @@ public class OppRestService implements ResourceContainer {
 				@QueryParam("baseUrl") String baseUrl,
 				@QueryParam("mentionned") String mentionned) throws Exception {
 			MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
+			String authcriptedcode=null;
+			byte[] checkSring =null;
+			String authorization=null;
+			 authorization = request.getHeader("Authorization");
+			if (authorization == null || !authorization.startsWith("Basic"))
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+	
+			try {
+	
+				authcriptedcode = authorization.substring("Basic".length()).trim();
+	
+				checkSring = Utils.decryptBase64EncodedWithManagedIV(
+						authcriptedcode, "mRMjHmlC1C+1L/Dkz8EJuw==");
+			} catch (Exception e) {
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+			}
+			if (checkSring == null
+					|| !(new String(checkSring, "UTF-8"))
+							.equals(RequestKeysConstants.SF_SECURITY_SID)) {
+	
+				return Response.status(Response.Status.UNAUTHORIZED).build();
+			}
+
 			oppName=URLDecoder.decode(oppName, "UTF-8");
 			poster=URLDecoder.decode(poster, "UTF-8");
 			commentPost =(commentPost!=null)? URLDecoder.decode(commentPost, "UTF-8"):null;
