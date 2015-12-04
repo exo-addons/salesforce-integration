@@ -41,9 +41,7 @@ public class OppServlet extends HttpServlet {
 		String accessToken = (String) request.getSession().getAttribute(
 				ACCESS_TOKEN);
 		
-		String oppID = (String) request.getSession().getAttribute(
-				RequestKeysConstants.OPPORTUNITY_ID);
-
+		String oppID = request.getParameter("oppID")!=null?request.getParameter("oppID"):(String) request.getSession().getAttribute("oppID");
 		String instanceUrl = (String) request.getSession().getAttribute(
 				RequestKeysConstants.INSTANCE_URL);
 
@@ -54,9 +52,6 @@ public class OppServlet extends HttpServlet {
 
 		writer.write("We have an access token: " + accessToken + "\n"
 				+ "Using instance " + instanceUrl + "\n\n");
-   if(oppID==null)
-	   oppID=request.getParameter("id");
-   
 
 		String oppName = getOpportunityName(instanceUrl, accessToken,oppID, writer);
 		try {
@@ -68,6 +63,7 @@ public class OppServlet extends HttpServlet {
 		//api.getSObject("Account", "00124000006Wqqe").as(Account.class);
 		 Opportunity opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
 		response.sendRedirect("/portal/private/rest/salesforce/create/"+oppID+"?oppName="+oppName);
+		return;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

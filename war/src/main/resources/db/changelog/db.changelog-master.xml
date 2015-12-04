@@ -12,7 +12,7 @@
     <changeSet author="obechir@exoplatform.com" id="1.0.0-1">
         <createTable tableName="POST_ACTIVITIES">
             <column name="POST_ACTIVITY_ID" type="BIGINT" autoIncrement="${autoIncrement}" startWith="1">
-                <constraints primaryKey="true" primaryKeyName="PK_POST_ACTIVITY_ID" nullable="false" unique="true"/>
+                <constraints primaryKey="true" primaryKeyName="PK_POST_ACTIVITY_ID" nullable="false"/>
             </column>
             <column name="ACTIVITY_ID" type="VARCHAR(50)">
                 <constraints nullable="false"/>
