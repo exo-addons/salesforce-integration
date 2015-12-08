@@ -8,10 +8,12 @@ import com.force.api.ForceApi;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.exoplatform.salesforce.config.ApiProvider;
 import org.exoplatform.salesforce.integ.connector.entity.UserConfig;
 import org.exoplatform.salesforce.integ.rest.UserService;
 import org.exoplatform.salesforce.integ.util.RequestKeysConstants;
 import org.exoplatform.salesforce.integ.util.ResourcePath;
+import org.exoplatform.salesforce.integ.util.Utils;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.json.JSONException;
@@ -145,7 +147,6 @@ public class OAuthServlet extends HttpServlet {
 
 						instanceUrl = authResponse
 								.getString(RequestKeysConstants.INSTANCE_URL);
-						initApi(request, accessToken, instanceUrl);
 					} catch (JSONException e) {
 						e.printStackTrace();
 						throw new ServletException(e);
@@ -165,34 +166,33 @@ public class OAuthServlet extends HttpServlet {
 			request.getSession().setAttribute(
 					RequestKeysConstants.INSTANCE_URL, instanceUrl);
 		}
-		boolean ist = false, tk = false;
-		for (int i = 0; i < cookies.length; i++) {
-			Cookie cookie1 = cookies[i];
-			if (cookie1.getName().equals("tk_ck_")) {
 
-				tk = true;
-			}
-
-			if (cookie1.getName().equals("inst_ck_")) {
-
-				ist = true;
-			}
-
-		}
-		if (!tk) {
-			Cookie tk_cookie = new Cookie("tk_ck_", accessToken);
+		Cookie tk_cookie = Utils.getCookie(request, "tk_ck_");
+		// update cookie with the new access token
+		if (tk_cookie != null) {
+			tk_cookie.setValue(accessToken);
+			tk_cookie.setMaxAge(60 * 60);
+			tk_cookie.setPath("/");
+			response.addCookie(tk_cookie);
+		} else {//
+			tk_cookie = new Cookie("tk_ck_", accessToken);
 			tk_cookie.setMaxAge(60 * 60); // 1 hour
 			tk_cookie.setPath("/");
 			response.addCookie(tk_cookie);
 		}
-		if (!ist) {
-			Cookie inst_cookie = new Cookie("inst_ck_",
-					instanceUrl);
+		Cookie inst_cookie = Utils.getCookie(request, "inst_ck_");
+		if (inst_cookie != null) {
+			inst_cookie.setValue(instanceUrl);
+			inst_cookie.setMaxAge(60 * 60); // 1 hour
+			inst_cookie.setPath("/");
+			response.addCookie(inst_cookie);
+		} else {//
+			inst_cookie = new Cookie("inst_ck_", instanceUrl);
 			inst_cookie.setMaxAge(60 * 60); // 1 hour
 			inst_cookie.setPath("/");
 			response.addCookie(inst_cookie);
 		}
-
+        
 		if (initialURI != null) {
             request.getSession().removeAttribute("initialURI");//clean the session
 			response.sendRedirect(initialURI);
@@ -222,8 +222,8 @@ public class OAuthServlet extends HttpServlet {
 
 		ApiSession s = new ApiSession(accessToken, instanceUrl);
 		ForceApi api = new ForceApi(c, s);
-		UserService.userMap.put(api.getIdentity().getUserId(), new UserConfig(
-				accessToken, instanceUrl.toString()));
+	/*	UserService.userMap.put(api.getIdentity().getUserId(), new UserConfig(
+				accessToken, instanceUrl.toString()));*/
 		return api;
 	}
 

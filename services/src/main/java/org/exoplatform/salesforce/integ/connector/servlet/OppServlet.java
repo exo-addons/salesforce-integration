@@ -14,15 +14,12 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
-import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.util.RequestKeysConstants;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.force.api.ForceApi;
 
 
 
@@ -31,38 +28,24 @@ public class OppServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String ACCESS_TOKEN = "ACCESS_TOKEN";
 	private static final Log LOG = ExoLogger.getLogger(OppServlet.class);
-	//private static final String INSTANCE_URL = "INSTANCE_URL";
-	//public static final String OPP_ID = "oppID";
-	
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		PrintWriter writer = response.getWriter();
-
-		String accessToken = (String) request.getSession().getAttribute(
-				ACCESS_TOKEN);
+		StringBuffer encodedUrl = new StringBuffer();
+			String accessToken = (String) request.getSession().getAttribute(
+					ACCESS_TOKEN);
+			String instanceUrl = (String) request.getSession().getAttribute(
+					RequestKeysConstants.INSTANCE_URL);
+			
 		
 		String oppID = request.getParameter("oppID")!=null?request.getParameter("oppID"):(String) request.getSession().getAttribute("oppID");
-		String instanceUrl = (String) request.getSession().getAttribute(
-				RequestKeysConstants.INSTANCE_URL);
 
-		if (accessToken == null) {
-			writer.write("Error - no access token");
+		if (accessToken == null||instanceUrl==null) {
 			return;
 		}
 
-		writer.write("We have an access token: " + accessToken + "\n"
-				+ "Using instance " + instanceUrl + "\n\n");
-
-		String oppName = getOpportunityName(instanceUrl, accessToken,oppID, writer);
 		try {
-		ForceApi api;
-	
-			api = OAuthServlet.initApi(request, accessToken, instanceUrl);
-
-		api.query("select Name from Opportunity where id="+ "\'"+oppID+"\' LIMIT 1", Opportunity.class);
-		//api.getSObject("Account", "00124000006Wqqe").as(Account.class);
-		 Opportunity opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
-		response.sendRedirect("/portal/private/rest/salesforce/create/"+oppID+"?oppName="+oppName);
+		encodedUrl.append("/portal/private/rest/salesforce/create/"+oppID);
+		response.sendRedirect(response.encodeRedirectURL(encodedUrl.toString()));
 		return;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -102,11 +85,7 @@ public class OppServlet extends HttpServlet {
 					JSONObject response = new JSONObject(json);
 					
 					LOG.info("Query response: "
-							+ response.toString(2));
-
-					writer.write(response.getInt("totalSize")
-							+ " record(s) returned\n\n");
-
+							+ response.toString(2));					
 					JSONArray results = response.getJSONArray("records");
 					 name =results.getJSONObject(0).getString("Name");
 				} catch (JSONException e) {

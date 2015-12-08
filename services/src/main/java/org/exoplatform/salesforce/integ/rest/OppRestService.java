@@ -1,5 +1,8 @@
 package org.exoplatform.salesforce.integ.rest;
 
+import com.force.api.ApiConfig;
+import com.force.api.ApiSession;
+import com.force.api.ApiVersion;
 import com.force.api.ForceApi;
 import com.force.api.QueryResult;
 
@@ -13,6 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.utils.MimeTypeResolver;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.salesforce.config.ApiProvider;
 import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivityBuilder;
@@ -21,6 +25,7 @@ import org.exoplatform.salesforce.integ.connector.entity.Attachment;
 import org.exoplatform.salesforce.integ.connector.entity.ContentDocumentLink;
 import org.exoplatform.salesforce.integ.connector.entity.ContentVersion;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
+import org.exoplatform.salesforce.integ.connector.entity.UserConfig;
 import org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet;
 import org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage;
 import org.exoplatform.salesforce.integ.util.RequestKeysConstants;
@@ -32,6 +37,7 @@ import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.rest.resource.ResourceContainer;
+import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -72,6 +78,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Map.Entry;
 
 @Path("/salesforce")
 
@@ -101,29 +108,25 @@ public class OppRestService implements ResourceContainer {
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
 			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
-	    	 Cookie[] cookies = request.getCookies();
 	            String accesstoken=null;
 	            String instance_url=null;
 	    	 ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
 	    	 ExoSocialActivity activity = new ExoSocialActivityImpl();
             if (sourceIdentity == null)
 				return Response.status(Response.Status.UNAUTHORIZED).build();
-			for (int i = 0; i < cookies.length; i++) {
-				Cookie cookie1 = cookies[i];
-				if (cookie1.getName().equals("tk_ck_")) {
-
-					accesstoken = cookie1.getValue();
-				}
-
-				if (cookie1.getName().equals("inst_ck_")) {
-
-					instance_url = cookie1.getValue();
-				}
-			}
-			
-			if(accesstoken!=null&&instance_url!=null){
-				
-				ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
+            Cookie tk_cookie=  Utils.getCookie(request, "tk_ck_");
+            Cookie inst_cookie = Utils.getCookie(request, "inst_ck_");
+            if(tk_cookie!=null)
+            accesstoken=tk_cookie.getValue();
+            if(inst_cookie!=null)
+            	instance_url=inst_cookie.getValue();
+            if(accesstoken!=null&&instance_url!=null){
+            //init the api here as exo user identity not available in oauth servlet otherwise user action on salesforce are made through portal context
+            	ForceApi api = ApiProvider.intApi(request.getSession(),accesstoken, instance_url,sourceIdentity.getRemoteId());
+            	if(api==null)
+            		 return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
+            		
+				//ConversationState.getCurrent().getIdentity().getUserId();
 				Opportunity opp = null;
 				try {
 					opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
@@ -670,7 +673,7 @@ public class OppRestService implements ResourceContainer {
 	    
 	    @GET
 	    @Path("get/contentdocuments/{oppName}")
-	    public Response createOpp(@Context HttpServletRequest request,
+	    public Response syncDoc(@Context HttpServletRequest request,
 	    		 @PathParam("oppName")String oppName,
 	    		 @QueryParam("workspaceName") String workspaceName,
 	    		 @QueryParam("nodepath") String nodepath) throws Exception {
@@ -686,20 +689,15 @@ public class OppRestService implements ResourceContainer {
 	    	 workspaceName=(workspaceName==null)?"collaboration":workspaceName;
             if (sourceIdentity == null)
 				return Response.status(Response.Status.UNAUTHORIZED).build();
+            //if user token expired or user try to sync without going by process oauth will replace cookies check
+            if(!ApiProvider.hasValidApiSession(sourceIdentity.getRemoteId()))
+            	return Response.temporaryRedirect(URI.create("/salesforce-extension/oauth?initialURI=/portal/private/rest/salesforce"
+						+ "/get/contentdocuments/"+oppName+"?"+"nodepath="+nodepath+"&amp;workspaceName="+workspaceName)).build();
 
-			for (int i = 0; i < cookies.length; i++) {
-				Cookie cookie1 = cookies[i];
-				if (cookie1.getName().equals("tk_ck_")) {
-
-					accesstoken = cookie1.getValue();
-				}
-
-				if (cookie1.getName().equals("inst_ck_")) {
-
-					instance_url = cookie1.getValue();
-				}
-			}
-
+            
+            accesstoken=UserService.userMap.get(sourceIdentity.getRemoteId()).getAccesstoken();
+            instance_url=UserService.userMap.get(sourceIdentity.getRemoteId()).getInstanceUrl();
+            
 			if(accesstoken==null||instance_url==null){
 				request.getSession().setAttribute("oppName", oppName);
 				request.getSession().setAttribute("nodepath", nodepath);
