@@ -8,10 +8,12 @@ import com.force.api.ForceApi;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.exoplatform.salesforce.config.ApiProvider;
 import org.exoplatform.salesforce.integ.connector.entity.UserConfig;
 import org.exoplatform.salesforce.integ.rest.UserService;
 import org.exoplatform.salesforce.integ.util.RequestKeysConstants;
 import org.exoplatform.salesforce.integ.util.ResourcePath;
+import org.exoplatform.salesforce.integ.util.Utils;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.json.JSONException;
@@ -86,19 +88,23 @@ public class OAuthServlet extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		Cookie[] cookies = request.getCookies();
-		clientId=System.getProperty("oauth.salesforce.clientId");
-		redirectUri=System.getProperty("oauth.salesforce.redirectUri");
-		clientSecret =System.getProperty("oauth.salesforce.clientSecret") ;
-		//use the session to store initial param to be re-used after callback from SF 
-		String initialURI=(String) (request.getSession().getAttribute("initialURI")!=null ?request.getSession().getAttribute("initialURI"):
-			request.getParameter("initialURI"));
-		String tempOppID=(String) (request.getSession().getAttribute("oppID")!=null ?request.getSession().getAttribute("oppID"):
-			request.getParameter("oppID"));
-		if(request.getParameter("initialURI")!=null)
-			request.getSession().setAttribute("initialURI", request.getParameter("initialURI"));
-		if(request.getParameter("oppID")!=null)
-			request.getSession().setAttribute("oppID", request.getParameter("oppID"));
+		clientId = System.getProperty("oauth.salesforce.clientId");
+		redirectUri = System.getProperty("oauth.salesforce.redirectUri");
+		clientSecret = System.getProperty("oauth.salesforce.clientSecret");
+		// use the session to store initial param to be re-used after callback
+		// from SF
+		String initialURI = (String) (request.getSession().getAttribute(
+				"initialURI") != null ? request.getSession().getAttribute(
+				"initialURI") : request.getParameter("initialURI"));
+		String tempOppID = (String) (request.getSession().getAttribute("oppID") != null ? request
+				.getSession().getAttribute("oppID") : request
+				.getParameter("oppID"));
+		if (request.getParameter("initialURI") != null)
+			request.getSession().setAttribute("initialURI",
+					request.getParameter("initialURI"));
+		if (request.getParameter("oppID") != null)
+			request.getSession().setAttribute("oppID",
+					request.getParameter("oppID"));
 		LOG.info("Begin OAuth");
 		String accessToken = (String) request.getSession().getAttribute(
 				ACCESS_TOKEN);
@@ -118,7 +124,7 @@ public class OAuthServlet extends HttpServlet {
 				HttpClient httpclient = new HttpClient();
 
 				PostMethod post = new PostMethod(tokenUrl);
-				
+
 				post.addParameter(RequestKeysConstants.CODE_KEY, code);
 				post.addParameter(RequestKeysConstants.GRANT_TYPE_KEY,
 						RequestKeysConstants.AUTHORIZATION_CODE);
@@ -145,7 +151,6 @@ public class OAuthServlet extends HttpServlet {
 
 						instanceUrl = authResponse
 								.getString(RequestKeysConstants.INSTANCE_URL);
-						initApi(request, accessToken, instanceUrl);
 					} catch (JSONException e) {
 						e.printStackTrace();
 						throw new ServletException(e);
@@ -165,81 +170,50 @@ public class OAuthServlet extends HttpServlet {
 			request.getSession().setAttribute(
 					RequestKeysConstants.INSTANCE_URL, instanceUrl);
 		}
-		boolean ist = false, tk = false;
-		for (int i = 0; i < cookies.length; i++) {
-			Cookie cookie1 = cookies[i];
-			if (cookie1.getName().equals("tk_ck_")) {
 
-				tk = true;
-			}
-
-			if (cookie1.getName().equals("inst_ck_")) {
-
-				ist = true;
-			}
-
-		}
-		if (!tk) {
-			Cookie tk_cookie = new Cookie("tk_ck_", accessToken);
+		Cookie tk_cookie = Utils.getCookie(request, "tk_ck_");
+		// update cookie with the new access token
+		if (tk_cookie != null) {
+			tk_cookie.setValue(accessToken);
+			tk_cookie.setMaxAge(60 * 60);
+			tk_cookie.setPath("/");
+			response.addCookie(tk_cookie);
+		} else {//
+			tk_cookie = new Cookie("tk_ck_", accessToken);
 			tk_cookie.setMaxAge(60 * 60); // 1 hour
 			tk_cookie.setPath("/");
 			response.addCookie(tk_cookie);
 		}
-		if (!ist) {
-			Cookie inst_cookie = new Cookie("inst_ck_",
-					instanceUrl);
+		Cookie inst_cookie = Utils.getCookie(request, "inst_ck_");
+		if (inst_cookie != null) {
+			inst_cookie.setValue(instanceUrl);
+			inst_cookie.setMaxAge(60 * 60); // 1 hour
+			inst_cookie.setPath("/");
+			response.addCookie(inst_cookie);
+		} else {//
+			inst_cookie = new Cookie("inst_ck_", instanceUrl);
 			inst_cookie.setMaxAge(60 * 60); // 1 hour
 			inst_cookie.setPath("/");
 			response.addCookie(inst_cookie);
 		}
 
 		if (initialURI != null) {
-            request.getSession().removeAttribute("initialURI");//clean the session
+			request.getSession().removeAttribute("initialURI");// clean the
+																// session
 			response.sendRedirect(initialURI);
-			return; // <-- avoid IllegalStateException , ensures that no content is adedd to the response further 
+			return; // <-- avoid IllegalStateException , ensures that no content
+					// is adedd to the response further
 
 		}
 		if (tempOppID != null) {
-			 request.getSession().removeAttribute("oppID");
+			request.getSession().removeAttribute("oppID");
 			response.sendRedirect("/salesforce-extension/opp" + "?oppID="
 					+ tempOppID);
 			return;
 		} else
 			response.sendRedirect("/portal");
 		return;
-			
-	}
 
-	public static ForceApi initApi(HttpServletRequest request,
-			String accessToken, String instanceUrl) throws Exception {
-		ApiVersion apiVersion = ApiVersion.DEFAULT_VERSION;
-		ApiConfig c = new ApiConfig()
-		.setClientId(System.getProperty("oauth.salesforce.clientId"))
-		.setClientSecret(System.getProperty("oauth.salesforce.clientSecret"))
-		.setRedirectURI(System.getProperty("oauth.salesforce.redirectUri"))
-		.setLoginEndpoint(RequestKeysConstants.SF_PROD)
-		.setApiVersion(apiVersion);
-
-		ApiSession s = new ApiSession(accessToken, instanceUrl);
-		ForceApi api = new ForceApi(c, s);
-		UserService.userMap.put(api.getIdentity().getUserId(), new UserConfig(
-				accessToken, instanceUrl.toString()));
-		return api;
-	}
-
-	public static ForceApi initApiFromCookies(String accessToken,
-			String instanceUrl) throws Exception {
-		ApiVersion apiVersion = ApiVersion.DEFAULT_VERSION;
-		ApiConfig c = new ApiConfig()
-		.setClientId(System.getProperty("oauth.salesforce.clientId"))
-		.setClientSecret(System.getProperty("oauth.salesforce.clientSecret"))
-		.setRedirectURI(System.getProperty("oauth.salesforce.redirectUri"))
-		.setLoginEndpoint(RequestKeysConstants.SF_PROD)
-		.setApiVersion(apiVersion);
-		
-		ApiSession s = new ApiSession(accessToken, instanceUrl);
-		ForceApi api = new ForceApi(c, s);
-		return api;
 	}
 
 }

@@ -1,18 +1,48 @@
 package org.exoplatform.salesforce.integ.rest;
 
-import com.force.api.ForceApi;
-import com.force.api.QueryResult;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.utils.MimeTypeResolver;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.salesforce.config.ApiProvider;
 import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivityBuilder;
@@ -21,7 +51,6 @@ import org.exoplatform.salesforce.integ.connector.entity.Attachment;
 import org.exoplatform.salesforce.integ.connector.entity.ContentDocumentLink;
 import org.exoplatform.salesforce.integ.connector.entity.ContentVersion;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
-import org.exoplatform.salesforce.integ.connector.servlet.OAuthServlet;
 import org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage;
 import org.exoplatform.salesforce.integ.util.RequestKeysConstants;
 import org.exoplatform.salesforce.integ.util.Utils;
@@ -48,30 +77,11 @@ import org.exoplatform.social.plugin.doc.UIDocActivity;
 import org.exoplatform.social.service.rest.RestChecker;
 import org.exoplatform.social.service.rest.Util;
 import org.exoplatform.social.webui.activity.UIDefaultActivity;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.force.api.ForceApi;
+import com.force.api.QueryResult;
 
 @Path("/salesforce")
 
@@ -94,36 +104,31 @@ public class OppRestService implements ResourceContainer {
 		String oppName = null;
 		String ammount = null;
 		String description = null;
-		String isClosed = null;
 		String stageName = null;
 		String closeDate = null;
 		String permId=null;
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
 			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
-	    	 Cookie[] cookies = request.getCookies();
 	            String accesstoken=null;
 	            String instance_url=null;
 	    	 ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
 	    	 ExoSocialActivity activity = new ExoSocialActivityImpl();
             if (sourceIdentity == null)
 				return Response.status(Response.Status.UNAUTHORIZED).build();
-			for (int i = 0; i < cookies.length; i++) {
-				Cookie cookie1 = cookies[i];
-				if (cookie1.getName().equals("tk_ck_")) {
-
-					accesstoken = cookie1.getValue();
-				}
-
-				if (cookie1.getName().equals("inst_ck_")) {
-
-					instance_url = cookie1.getValue();
-				}
-			}
-			
-			if(accesstoken!=null&&instance_url!=null){
-				
-				ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
+            Cookie tk_cookie=  Utils.getCookie(request, "tk_ck_");
+            Cookie inst_cookie = Utils.getCookie(request, "inst_ck_");
+            if(tk_cookie!=null)
+            accesstoken=tk_cookie.getValue();
+            if(inst_cookie!=null)
+            	instance_url=inst_cookie.getValue();
+            if(accesstoken!=null&&instance_url!=null){
+            //init the api here as exo user identity not available in oauth servlet otherwise user action on salesforce are made through portal context
+            	ForceApi api = ApiProvider.intApi(request.getSession(),accesstoken, instance_url,sourceIdentity.getRemoteId());
+            	if(api==null)
+            		 return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
+            		
+				//ConversationState.getCurrent().getIdentity().getUserId();
 				Opportunity opp = null;
 				try {
 					opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
@@ -142,11 +147,8 @@ public class OppRestService implements ResourceContainer {
 				    permId=opp.getId();
 					ammount = (opp.getAmount()!=null) ?opp.getAmount().toString():"Not defined";
 					description = (opp.getDescription()!=null)? opp.getDescription():"Not defined";
-					isClosed = (opp.getIsClosed()!=null)? opp.getIsClosed().toString():"Not defined";
 					closeDate= (opp.getCloseDate()!=null)? opp.getCloseDate().toString():"Not defined";
 					if(closeDate!=null){
-					DateTimeFormatter dateFormat = DateTimeFormat
-							.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 					Date d = simpleDateFormat.parse(closeDate);
 					closeDate = simpleDateFormat.format(d);
@@ -394,7 +396,6 @@ public class OppRestService implements ResourceContainer {
 			}
 
 			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
-			Profile oppProfile = spaceIdentity.getProfile();
 			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
 			ExoSocialActivity activity = new ExoSocialActivityImpl();
 			 activity.setUserId(salesforceIdentity.getId());
@@ -485,8 +486,6 @@ public class OppRestService implements ResourceContainer {
 			
 			String profile_page = baseUrl+RequestKeysConstants.SF_USER__PROFILE_PAGE;
 			String poster_link =profile_page+posterId;
-			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, space.getPrettyName(), false);
-			Profile oppProfile = spaceIdentity.getProfile();
 			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
 			PostActivitiesService postActivitiesService = (PostActivitiesService) PortalContainer.getInstance().getComponentInstanceOfType(PostActivitiesService.class);
 			PostActivitiesEntity chatterPost=postActivitiesService.findEntityByPostId(postID);
@@ -637,10 +636,7 @@ public class OppRestService implements ResourceContainer {
 	    @Consumes({MediaType.APPLICATION_JSON})
 	    public Response getConfig(@Context HttpServletRequest request,@Context HttpServletResponse response,@Context UriInfo uriInfo) throws Exception {
 	        Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
-	        MediaType mediaType = RestChecker.checkSupportedFormat("json", SUPPORTED_FORMATS);
-	        ConfigurationInfoStorage configurationInfoStorage = (ConfigurationInfoStorage) PortalContainer.getInstance().getComponentInstanceOfType(ConfigurationInfoStorage.class);
 	        try {
-	            IdentityManager identityManager=Util.getIdentityManager(portalContainerName);
 	            if(sourceIdentity == null) {
 	                return Response.status(Response.Status.UNAUTHORIZED).build();
 	            }
@@ -670,7 +666,7 @@ public class OppRestService implements ResourceContainer {
 	    
 	    @GET
 	    @Path("get/contentdocuments/{oppName}")
-	    public Response createOpp(@Context HttpServletRequest request,
+	    public Response syncDoc(@Context HttpServletRequest request,
 	    		 @PathParam("oppName")String oppName,
 	    		 @QueryParam("workspaceName") String workspaceName,
 	    		 @QueryParam("nodepath") String nodepath) throws Exception {
@@ -678,28 +674,20 @@ public class OppRestService implements ResourceContainer {
 	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
 	    	 IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 	    	 boolean firstCall=false;
-	    	 Cookie[] cookies = request.getCookies();
-	            String accesstoken=null;
+	    	 String accesstoken=null;
 	            String instance_url=null;
-	    	 ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
-	    	 ExoSocialActivity activity = new ExoSocialActivityImpl();
 	    	 workspaceName=(workspaceName==null)?"collaboration":workspaceName;
             if (sourceIdentity == null)
 				return Response.status(Response.Status.UNAUTHORIZED).build();
+            //if user token expired or user try to sync without going by process oauth will replace cookies check
+            if(!ApiProvider.hasValidApiSession(sourceIdentity.getRemoteId()))
+            	return Response.temporaryRedirect(URI.create("/salesforce-extension/oauth?initialURI=/portal/private/rest/salesforce"
+						+ "/get/contentdocuments/"+oppName+"?"+"nodepath="+nodepath+"&amp;workspaceName="+workspaceName)).build();
 
-			for (int i = 0; i < cookies.length; i++) {
-				Cookie cookie1 = cookies[i];
-				if (cookie1.getName().equals("tk_ck_")) {
-
-					accesstoken = cookie1.getValue();
-				}
-
-				if (cookie1.getName().equals("inst_ck_")) {
-
-					instance_url = cookie1.getValue();
-				}
-			}
-
+            
+            accesstoken=UserService.userMap.get(sourceIdentity.getRemoteId()).getAccesstoken();
+            instance_url=UserService.userMap.get(sourceIdentity.getRemoteId()).getInstanceUrl();
+            
 			if(accesstoken==null||instance_url==null){
 				request.getSession().setAttribute("oppName", oppName);
 				request.getSession().setAttribute("nodepath", nodepath);
@@ -728,7 +716,7 @@ public class OppRestService implements ResourceContainer {
 			Space opp=spaceService.getSpaceByPrettyName(oppName);
 			if(opp!=null){
 				List<String> oppDocID = new ArrayList<String>();
-				ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
+				ForceApi api = ApiProvider.intApi(request.getSession(),accesstoken, instance_url,sourceIdentity.getRemoteId());
 				//SELECT Id, ContentDocumentId FROM ContentDocumentLink WHERE LinkedEntityId = '00624000003onYq'
 				 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, opp.getPrettyName(), false);
 				 String oppID =spaceIdentity.getProfile().getProperty("oppID").toString();
@@ -812,7 +800,6 @@ public class OppRestService implements ResourceContainer {
 										 while(nodeIter.hasNext()) {
 											 Node id = nodeIter.nextNode() ;
 											 if(!id.getName().equals(contentid)||firstCall){
-													String baseName = FilenameUtils.getBaseName(path);
 													MimeTypeResolver resolver = new MimeTypeResolver();
 													String type = resolver.getMimeType(path);
 
@@ -964,7 +951,6 @@ public class OppRestService implements ResourceContainer {
 								 while(nodeIter.hasNext()) {
 									 Node id = nodeIter.nextNode() ;
 									 if(!id.getName().equals(oppAttachementID.get(i))||firstCall){
-											String baseName = FilenameUtils.getBaseName(path);
 											MimeTypeResolver resolver = new MimeTypeResolver();
 											String type = resolver.getMimeType(path);
 
@@ -1046,7 +1032,6 @@ public class OppRestService implements ResourceContainer {
 			Session session = repositoryService.getCurrentRepository().getSystemSession("collaboration");
 			Node rootNode = session.getRootNode();
 			Node sfFolder =rootNode.getNode("Groups"+space.getGroupId()+"/Documents/salesForceDocuments");
-			String baseName = FilenameUtils.getBaseName(contentPost);
 			MimeTypeResolver resolver = new MimeTypeResolver();
 			String minetype = resolver.getMimeType(contentPost);
 			//use contentID as unique name and title as real name as same content could be attached 
@@ -1132,37 +1117,16 @@ public class OppRestService implements ResourceContainer {
 			if (sourceIdentity == null) {
 				return Response.status(Response.Status.UNAUTHORIZED).build();
 			}
-			  String oppid=space.get("oppid");
-			
-			Cookie[] cookies = request.getCookies();
+			  Cookie[] cookies = request.getCookies();
 			request.getRequestURI();
-			String accesstoken=null;
-			String instance_url=null;
-						for (int i = 0; i < cookies.length; i++) {
+			for (int i = 0; i < cookies.length; i++) {
 				Cookie cookie1 = cookies[i];
 				if (cookie1.getName().equals("tk_ck_")) {
-
-					accesstoken = cookie1.getValue();
 				}
 
 				if (cookie1.getName().equals("inst_ck_")) {
-
-					instance_url = cookie1.getValue();
 				}
 
-			}
-			if(accesstoken!=null&&accesstoken!=null){
-			ForceApi api = OAuthServlet.initApiFromCookies(accesstoken, instance_url);
-			//SELECT COUNT(Id) FROM OpportunityFeed where parentId="oppid"
-			String qq="SELECT COUNT(Id) FROM OpportunityFeed where ParentId="+ "\'"+oppid+"\'";
-			
-			//SELECT COUNT(Id) FROM OpportunityFeed
-			QueryResult<AggregateResult> totalFeed=api.query(qq, AggregateResult.class);
-			
-			
-			int nbfeed=Integer.parseInt(totalFeed.getRecords().get(0).getexpr0());
-			// check if nb feed was changed nbfeed >oppProfile.gettProperty("nbOppFeed"); means new update
-			//so got the update , push to exo and store the new nbfeed to the space profile 
 			}
 			JSONObject jsonGlobal = new JSONObject();
 			jsonGlobal.put("message", " update");
