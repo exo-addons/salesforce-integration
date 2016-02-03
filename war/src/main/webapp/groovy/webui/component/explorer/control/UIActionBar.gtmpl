@@ -16,25 +16,37 @@
   import org.exoplatform.ecm.webui.component.explorer.UIDrivesArea;
   import org.apache.commons.lang.StringUtils;
   import org.exoplatform.ecm.webui.component.explorer.control.action.UploadActionComponent;
+	import org.exoplatform.ecm.webui.component.explorer.rightclick.manager.UploadNewVersionManageComponent;
+	import org.exoplatform.ecm.webui.component.explorer.control.action.EditPropertyActionComponent;
+  import org.exoplatform.ecm.webui.component.explorer.rightclick.manager.OpenDocumentManageComponent;
+  import org.exoplatform.services.wcm.utils.WCMCoreUtils;
+  import org.exoplatform.wcm.connector.collaboration.OpenInOfficeConnector;
   import org.exoplatform.portal.application.PortalRequestContext;
   import org.exoplatform.portal.webui.util.Util;
   import org.exoplatform.salesforce.integ.util.Utils;
 
-  
   def uiPortlet = uicomponent.getAncestorOfType(UIJCRExplorerPortlet.class);
   def uiExplorer = uicomponent.getAncestorOfType(UIJCRExplorer.class);
   def uiDriveArea = uiExplorer.getChild(UIWorkingArea.class).getChild(UIDrivesArea.class);
   def uniqueId  = new Date().getTime();
   def rcontext = _ctx.getRequestContext() ;
   def uiFormId = uicomponent.id;
-  
-  def jsManager = rcontext.getJavascriptManager();
-  jsManager.require("SHARED/ecm-utils", "ecmutil").require("SHARED/multiUpload", "multiUpload")
-  .addScripts('multiUpload.displayCorrectUploadButton();');
-  
-  def showUploadInput = false;
   def isOpp =false;
   def done =true;
+	def currentNode = uiExplorer.getCurrentNode();
+	def currentNodePath = currentNode.getSession().getWorkspace().getName()+":"+currentNode.getPath();
+  def openInOfficeConnector = WCMCoreUtils.getService(OpenInOfficeConnector.class);
+  def _documentInfos = openInOfficeConnector.getDocumentInfos(currentNode.getName());
+  def remoteEditClass=_documentInfos[1];
+  def remoteEditTitle=_ctx.appRes(_documentInfos[0]);
+
+  def jsManager = rcontext.getJavascriptManager();
+  jsManager.require("SHARED/ecm-utils", "ecmutil").require("SHARED/multiUpload", "multiUpload")
+	.require("SHARED/openDocumentInOffice", "openDocumentInOffice")
+  .addScripts('multiUpload.displayCorrectUploadButton();')
+	.addScripts("eXo.ecm.OpenDocumentInOffice.updateLabel('"+currentNodePath+"');");
+
+  def showUploadInput = false;
   
   def tabs = uicomponent.getTabList() ;
   def actionBarStyle = "";
@@ -93,7 +105,7 @@
 					</li>                                                                                           <%
 				}/*for tabs loops*/                                                                                   %>
 					<li class="dropdown pull-right listHiddenTabsContainer">
-						<a data-toggle="dropdown" class="dropdown-toggle" href="#"><%=_ctx.appRes("UIViewBar.label.more")%> <b class="caret"></b></a>
+						<a data-toggle="dropdown" class="dropdown-toggle" href="#"><%=_ctx.appRes("UIViewBar.label.more")%> <i class="uiIconMiniArrowDown uiIconLightGray"></i></a>
 							<ul class="dropdown-menu">
 								<!-- <li><a data-toggle="tab" href="#dropdown1_4">Tab demo1</a></li> -->
 							</ul>
@@ -107,49 +119,54 @@
 						 for(button in uicomponent.getActionInTab(uicomponent.getSelectedTab())) {
 							 def action = uicomponent.getUIAction(button);
 							 if (action != null) {
-								 def actionOnClick = (action instanceof UploadActionComponent) ? "document.getElementById('MultiUploadInputFiles').click();" : action.event(button);
+								 def actionOnClick = action.event(button);
+					 			 if(action instanceof UploadActionComponent){
+           				actionOnClick = "eXo.ecm.MultiUpload.srcAction='';document.getElementById('MultiUploadInputFiles').click();";
+					       }else if(action instanceof UploadNewVersionManageComponent){
+           				actionOnClick = "eXo.ecm.MultiUpload.srcAction='NewVersion';eXo.ecm.MultiUpload.uploadNewVersion();"
+					       }
+
 								 def title = _ctx.appRes(uicomponent.getId() + ".tooltip." + button);
 								 String idUpload = (action instanceof UploadActionComponent) ? "id='UploadButtonDiv'" : "";
+                 def _remoteEditClass="";
+                 if(action instanceof OpenDocumentManageComponent){
+                   _remoteEditClass = "uiIcon16x16FileDefault uiIcon16x16nt_file "+remoteEditClass;
+                   title = remoteEditTitle;
+                 }
 							 %>
 								 <li <%=idUpload%> onclick="<%= actionOnClick %>">
-									 <a class="actionIcon"><i class="uiIconEcms${button} uiIconEcmsLightGray"></i> $title</a>
+									<%if(StringUtils.isNotEmpty(_remoteEditClass)){%>
+										<a class="actionIcon"><i class="$_remoteEditClass uiIconEcms${button} uiIconEcmsLightGray"></i> $title</a>
+									<%}else{%>
+										<a class="actionIcon"><i class="uiIconEcms${button} uiIconEcmsLightGray"></i> $title</a>
+									<%}%>
 								 </li>
 								 <li id="12222">
- <% PortalRequestContext portalRequestContext = Util.getPortalRequestContext();
- String requestURL = portalRequestContext.getRequest().getRequestURL().toString();
-
-    if (requestURL.indexOf("/portal/g/:spaces:")>-1)
-    {
-
-      String[] baseSpaceURL = requestURL.split("g/:spaces:");
-
-    
-      String supURL =baseSpaceURL[1];
-      String baseURL =baseSpaceURL[0];
-      String requestparam =supURL.substring(0, supURL.indexOf("/"));
-               String nodepath=uiExplorer.getCurrentPath();
-        String workspaceName=uiExplorer.getWorkspaceName();
-      //https://zaoui:8443/portal/rest/salesforce/get/contentdocuments/00624000003onYq 
-      
-      String spaceName =supURL.substring(0, supURL.indexOf("/"));
-     isOpp= Utils.iSOpportunitySpace(spaceName);
-      restURl=baseURL+"rest/salesforce/get/contentdocuments/"+spaceName+"?workspaceName="+workspaceName+"&nodepath="+nodepath
-
-
-         
-
-
-
-
-    }
-
+								 <% PortalRequestContext portalRequestContext = Util.getPortalRequestContext();
+								 String requestURL = portalRequestContext.getRequest().getRequestURL().toString();
 								
-								 %>
+								    if (requestURL.indexOf("/portal/g/:spaces:")>-1)
+								    {
+								
+								      String[] baseSpaceURL = requestURL.split("g/:spaces:");
+								
+								    
+								      String supURL =baseSpaceURL[1];
+								      String baseURL =baseSpaceURL[0];
+								      String requestparam =supURL.substring(0, supURL.indexOf("/"));
+								      String nodepath=uiExplorer.getCurrentPath();
+								      String workspaceName=uiExplorer.getWorkspaceName();
+								      String spaceName =supURL.substring(0, supURL.indexOf("/"));
+								     isOpp= Utils.iSOpportunitySpace(spaceName);
+								      restURl=baseURL+"rest/salesforce/get/contentdocuments/"+spaceName+"?workspaceName="+workspaceName+"&nodepath="+nodepath
+								    }
+																
+																 %>
 								 <%if((isOpp)&&done){%>
 									 <a class="actionIcon" href=$restURl><i class="uiIconEcms${button} uiIconEcmsLightGray"></i> get content from salesforce</a>
 								 
 								 <%done=false;}%>
-</li>
+								</li>
 								 <% if (action instanceof UploadActionComponent) {
 	  						   showUploadInput = true;
 	  						 }
@@ -165,7 +182,7 @@
 						 } //for loop
 					 %>
 					 <li class="dropdown pull-right listHiddenActionsContainer" style="display: none;">
-						 <a data-toggle="dropdown" class="dropdown-toggle" href="#"><%=_ctx.appRes("UIViewBar.label.more")%> <b class="caret"></b></a>
+						 <a data-toggle="dropdown" class="dropdown-toggle" href="#"><%=_ctx.appRes("UIViewBar.label.more")%> <i class="uiIconMiniArrowDown uiIconLightGray"></i></a>
 						 <ul class="dropdown-menu" id="ListHideContainer"></ul>
 					 </li>
 				 </ul>
@@ -248,5 +265,4 @@
 </xmp>
 
 </div>
-
 

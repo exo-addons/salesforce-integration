@@ -74,6 +74,7 @@ import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.plugin.doc.UIDocActivity;
+import org.exoplatform.social.plugin.doc.UIDocActivityBuilder;
 import org.exoplatform.social.service.rest.RestChecker;
 import org.exoplatform.social.service.rest.Util;
 import org.exoplatform.social.webui.activity.UIDefaultActivity;
@@ -1057,7 +1058,7 @@ public class OppRestService implements ResourceContainer {
 			ExoSocialActivity activity = new ExoSocialActivityImpl();
 
 			
-			activity.setType(UIDocActivity.ACTIVITY_TYPE);
+			activity.setType(UIDocActivityBuilder.ACTIVITY_TYPE);
 			Map<String, String> templateParams = new HashMap<String, String>();
 			String activitybody="<a href=\""
 					+poster_link+ "\">"+poster+"</a>"
