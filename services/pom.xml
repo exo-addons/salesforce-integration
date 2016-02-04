@@ -51,13 +51,13 @@
    <dependency>
       <groupId>org.exoplatform.commons</groupId>
       <artifactId>commons-api</artifactId>
-      <version>${platform.version}</version>
+      <version>${org.exoplatform.platform.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.exoplatform.commons</groupId>
       <artifactId>commons-component-common</artifactId>
-      <version>${platform.version}</version>
+      <version>${org.exoplatform.platform.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

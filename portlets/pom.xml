@@ -34,7 +34,7 @@
     <dependency>
       <groupId>org.exoplatform.addons.salesforce-integration</groupId>
       <artifactId>salesforce-services</artifactId>
-      <version>1.0.x-SNAPSHOT</version>
+      <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

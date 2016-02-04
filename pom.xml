@@ -34,9 +34,43 @@
   <description>salesforce Extension</description>
   <properties>
     <org.exoplatform.platform.version>4.3.0</org.exoplatform.platform.version>
-    <platform.version>4.3.0</platform.version>
     <hibernate.version>4.1.12.Final</hibernate.version>
+      <org.liquibase.versio>3.3.2</org.liquibase.versio>
   </properties>
+
+    <developers>
+        <developer>
+            <id>obechir</id>
+            <name>Bechir Oueslati</name>
+            <email>obechir@exoplatform.com</email>
+            <roles>
+                <role>Owner</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>azaoui</id>
+            <name>Ahmed Zaoui</name>
+            <email>azaoui@exoplatform.com</email>
+            <roles>
+                <role>Owner</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <modules>
+        <module>config</module>
+        <module>war</module>
+        <module>portlets</module>
+        <module>services</module>
+        <module>packaging</module>
+    </modules>
+
+    <scm>
+        <connection>scm:git:git://github.com/exo-addons/salesforce-integration.git</connection>
+        <developerConnection>scm:git:git@github.com:exo-addons/salesforce-integration.git</developerConnection>
+        <url>https://github.com/exo-addons/salesforce-integration</url>
+        <tag>HEAD</tag>
+    </scm>
 
   <dependencyManagement>
     <dependencies>
@@ -49,7 +83,7 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
+<!--
     <repositories>
         <repository>
             <id>force-rest-api</id>
@@ -57,31 +91,27 @@
             <url>http://jesperfj.github.com/force-rest-api/repository/</url>
         </repository>
     </repositories>
+-->
 
-  <modules>
-    <module>config</module>
-    <module>war</module>
-    <module>portlets</module>
-    <module>services</module>    
-    <module>packaging</module>    
-  </modules>
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.0</version>
-          <configuration>
-            <source>1.7</source>
-            <target>1.7</target>
-          </configuration>
-        </plugin>
-          <plugin>
-              <groupId>org.liquibase</groupId>
-              <artifactId>liquibase-maven-plugin</artifactId>
-              <version>3.3.2</version>
-          </plugin>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <version>3.0</version>
+              <configuration>
+                <source>1.7</source>
+                <target>1.7</target>
+              </configuration>
+            </plugin>
+<!--
+              <plugin>
+                  <groupId>org.liquibase</groupId>
+                  <artifactId>liquibase-maven-plugin</artifactId>
+                  <version>3.3.2</version>
+              </plugin>
+-->
       </plugins>
     </pluginManagement>
   </build>
