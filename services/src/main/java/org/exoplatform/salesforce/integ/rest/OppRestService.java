@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.security.RolesAllowed;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
@@ -233,27 +234,28 @@ public class OppRestService implements ResourceContainer {
 		}
 
 	@GET
-	@Path("getopportunity/{SpaceName}")
+	@RolesAllowed("users")
+	@Path("getopportunity/{oppName}")
 	public Response getOpportunityData(
 			@Context HttpServletRequest request,
-			@PathParam("SpaceName") String SpaceName) throws JSONException {
+			@PathParam("oppName") String oppName) throws JSONException {
 		Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 		if (sourceIdentity == null)
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		SpaceService spaceService = Util.getSpaceService(portalContainerName);
 		IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
-		Space dealroom = spaceService.getSpaceByPrettyName(SpaceName);
+		Space dealroom = spaceService.getSpaceByPrettyName(oppName);
 		if(dealroom != null) {
 			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, dealroom.getPrettyName(), false);
 			Profile oppProfile = spaceIdentity.getProfile();
-			if(oppProfile != null) {
+			if(oppProfile != null && oppProfile.getProperty("oppID") != null) {
 				JSONObject json = new JSONObject();
 				json.put("opportunityName", oppProfile.getProperty("opportunityName").toString());
 				json.put("description", oppProfile.getProperty("description").toString());
 				json.put("CloseDate", oppProfile.getProperty("CloseDate").toString());
-				json.put("ammount", oppProfile.getProperty("ammount").toString());
+				json.put("amount", oppProfile.getProperty("ammount").toString());
 				json.put("stageName", oppProfile.getProperty("stageName").toString());
-				return Response.ok(json.toString(),MediaType.APPLICATION_JSON).build();
+				return Response.ok(json.toString(), MediaType.APPLICATION_JSON).build();
 			}
 		}
 		return Response.status(Response.Status.NO_CONTENT).build();
