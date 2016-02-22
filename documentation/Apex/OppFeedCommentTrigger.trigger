@@ -1,8 +1,5 @@
 trigger OppFeedCommentTrigger on FeedComment(after insert) {
 String parameters='poster='+EncodingUtil.urlEncode(UserInfo.getName(), 'UTF-8');
-String baseUrl = System.URL.getSalesforceBaseUrl().toExternalForm();
-             parameters +='&baseUrl='+baseUrl;
-             parameters +='&posterId='+F.CreatedById;
 
 
     for (FeedComment F : Trigger.new) {
@@ -20,7 +17,6 @@ String baseUrl = System.URL.getSalesforceBaseUrl().toExternalForm();
                      ConnectApi.FeedElement feedElement = ConnectApi.ChatterFeeds.getFeedElement(null, F.FeedItemId);
                      parameters += '&commentPost='+EncodingUtil.urlEncode(F.CommentBody, 'UTF-8');
                      String mentionnedNames='';
-                     String mentionnedIds='';
                      Boolean isFirst = true;
                     ConnectApi.Comment comment=ConnectApi.ChatterFeeds.getComment(null, F.Id);
 
@@ -33,19 +29,15 @@ String baseUrl = System.URL.getSalesforceBaseUrl().toExternalForm();
                                     //System.debug('Text message:'+mentionSegment.name);
                                     if(isFirst) {
                                     mentionnedNames+=mentionSegment.name;
-                                    mentionnedIds+=mentionSegment.record.id;
                                     isFirst=false;
                                     }else{
                                      mentionnedNames+=','+mentionSegment.name;
-                                     mentionnedIds+=mentionSegment.record.id;
                                     }
                                 }
                                 
                         }
-                        if(String.isNotEmpty(mentionnedNames))  {
+                        if(String.isNotEmpty(mentionnedNames))  
                         parameters += '&mentionned='+EncodingUtil.urlEncode(mentionnedNames, 'UTF-8');
-                        parameters += '&mentionnedIds='+EncodingUtil.urlEncode(mentionnedIds, 'UTF-8');
-                        }
                 // }
          
 
