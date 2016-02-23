@@ -1,8 +1,10 @@
 package org.exoplatform.salesforce.integ.job;
 
 import com.force.api.*;
+import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.salesforce.VariablesUtil;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivityBuilder;
 import org.exoplatform.salesforce.integ.connector.entity.Opportunity;
 import org.exoplatform.salesforce.integ.connector.entity.UserConfig;
@@ -37,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author dev.zaouiahmed@gmail.com
  *
  */
-public class OpportunityCreateActivityJob implements Job {
+public class OpportunityCreateActivityJob implements Job,VariablesUtil {
 	private static final Log LOG = ExoLogger.getLogger(OpportunityCreateActivityJob.class);
 	SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
     ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
@@ -59,9 +61,9 @@ public class OpportunityCreateActivityJob implements Job {
 				Entry<String, UserConfig> mEntry = iter.next();
 				ApiVersion apiVersion = ApiVersion.DEFAULT_VERSION;
 				ApiConfig c = new ApiConfig()
-				.setClientId(System.getProperty("oauth.salesforce.clientId"))
-				.setClientSecret(System.getProperty("oauth.salesforce.clientSecret"))
-				.setRedirectURI(System.getProperty("oauth.salesforce.redirectUri"))
+				.setClientId(PropertyManager.getProperty(CLIENT_ID))
+				.setClientSecret(PropertyManager.getProperty(CLIENT_SECRET))
+				.setRedirectURI(PropertyManager.getProperty(REDIRECT_URI))
 				.setLoginEndpoint(RequestKeysConstants.SF_PROD)
 				.setApiVersion(apiVersion);
 				

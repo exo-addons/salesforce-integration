@@ -8,6 +8,8 @@ import com.force.api.ForceApi;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.exoplatform.commons.utils.PropertyManager;
+import org.exoplatform.salesforce.VariablesUtil;
 import org.exoplatform.salesforce.config.ApiProvider;
 import org.exoplatform.salesforce.integ.connector.entity.UserConfig;
 import org.exoplatform.salesforce.integ.rest.UserService;
@@ -29,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
 
-public class OAuthServlet extends HttpServlet {
+public class OAuthServlet extends HttpServlet implements VariablesUtil{
 	public class OauthToken {
 
 	}
@@ -52,26 +54,9 @@ public class OAuthServlet extends HttpServlet {
 
 	public void init() throws ServletException {
 		try {
-			clientId=System.getProperty("oauth.salesforce.clientId");
-			if (System.getProperty("oauth.salesforce.clientId")==null) {
-				clientId = "3MVG9Rd3qC6oMalVaRGdPD6BFFD89SgIXKOVxc2nwIPmdYDkFPuXBLWpPTz2D685IIG.DFVYEwYEdIqo9B827";
-				System.setProperty("oauth.salesforce.clientId", clientId);
-
-			}
-			
-			clientSecret =System.getProperty("oauth.salesforce.clientSecret") ;
-			if (System.getProperty("oauth.salesforce.clientSecret") == null) {
-				clientSecret = "3281403007789330224";
-				System.setProperty("oauth.salesforce.clientSecret",clientSecret);
-			}
-			
-			redirectUri=System.getProperty("oauth.salesforce.redirectUri");
-			if (System.getProperty("oauth.salesforce.redirectUri") == null) {
-				redirectUri = "https://plfent-4.3.x-pkgpriv-salesforce-integration-snapshot.acceptance5.exoplatform.org/salesforce-extension/oauth/_callback";
-				System.setProperty("oauth.salesforce.redirectUri", redirectUri);
-
-			}
-			
+			clientId=PropertyManager.getProperty(CLIENT_ID);
+			clientSecret =PropertyManager.getProperty(REDIRECT_URI) ;
+			redirectUri=PropertyManager.getProperty(CLIENT_SECRET);
 
 			environment = RequestKeysConstants.SF_PROD;
 
@@ -88,9 +73,9 @@ public class OAuthServlet extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		clientId = System.getProperty("oauth.salesforce.clientId");
-		redirectUri = System.getProperty("oauth.salesforce.redirectUri");
-		clientSecret = System.getProperty("oauth.salesforce.clientSecret");
+		clientId = PropertyManager.getProperty(CLIENT_ID);;
+		redirectUri = PropertyManager.getProperty(REDIRECT_URI);
+		clientSecret = PropertyManager.getProperty(CLIENT_SECRET);
 		// use the session to store initial param to be re-used after callback
 		// from SF
 		String initialURI = (String) (request.getSession().getAttribute(

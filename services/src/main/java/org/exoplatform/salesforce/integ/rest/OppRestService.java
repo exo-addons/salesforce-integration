@@ -41,8 +41,10 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.utils.MimeTypeResolver;
+import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.salesforce.VariablesUtil;
 import org.exoplatform.salesforce.config.ApiProvider;
 import org.exoplatform.salesforce.domain.PostActivitiesEntity;
 import org.exoplatform.salesforce.integ.component.activity.UISalesforceActivity;
@@ -87,16 +89,27 @@ import com.force.api.QueryResult;
 
 @Path("/salesforce")
 
-public class OppRestService implements ResourceContainer { 
+public class OppRestService implements ResourceContainer,VariablesUtil {
+		//TODO: Review all methods within this class
 	    private static final Log LOG = ExoLogger.getLogger(OppRestService.class);
-	    OrganizationService orgService = (OrganizationService) PortalContainer.getInstance().getComponentInstanceOfType(OrganizationService.class);
-	    RepositoryService repositoryService = (RepositoryService) PortalContainer.getInstance().getComponentInstanceOfType(RepositoryService.class);
+	    OrganizationService orgService;
+	    RepositoryService repositoryService;
+		SpaceService spaceService;
+		IdentityManager identityManager;
+		ActivityManager activityManager;
 		//private DateTime CloseDate;
 	    private static final String portalContainerName = "portal";
 	    private static final String[] SUPPORTED_FORMATS = new String[]{"json"};
 
+	public OppRestService(OrganizationService orgService, RepositoryService repositoryService, SpaceService spaceService, IdentityManager identityManager, ActivityManager activityManager) {
+		this.orgService = orgService;
+		this.repositoryService = repositoryService;
+		this.spaceService = spaceService;
+		this.identityManager = identityManager;
+		this.activityManager = activityManager;
+	}
 
-	    @SuppressWarnings("deprecation")
+	@SuppressWarnings("deprecation")
 	@GET
 	@Path("create/{oppID}")
 	public Response createOpp(
@@ -110,11 +123,8 @@ public class OppRestService implements ResourceContainer {
 		String closeDate = null;
 		String permId=null;
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
-	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
-			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 	            String accesstoken=null;
 	            String instance_url=null;
-	    	 ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
 	    	 ExoSocialActivity activity = new ExoSocialActivityImpl();
             if (sourceIdentity == null)
 				return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -175,16 +185,17 @@ public class OppRestService implements ResourceContainer {
 		    else
 			project_.setDescription(description);
             project_.setType(DefaultSpaceApplicationHandler.NAME);
-            project_.setVisibility(Space.PUBLIC);
+            project_.setVisibility(Space.PRIVATE);
             project_.setRegistration(Space.VALIDATION);
             project_.setPriority(Space.INTERMEDIATE_PRIORITY);
             Space s= spaceService.createSpace(project_, owner);
-            createspaceFolder(project_,spaceService);
+            createspaceFolder(project_);
 
 			spaceService.addMember(s,"salesforce");
 
             if (s != null) {
-            	 activity.setUserId(sourceIdentity.getId());
+				Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
+            	activity.setUserId(salesforceIdentity.getId());
                 Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, s.getPrettyName(), false);
                 Profile oppProfile = spaceIdentity.getProfile();
                 oppProfile.setProperty("oppID", permId);
@@ -219,7 +230,7 @@ public class OppRestService implements ResourceContainer {
             return Response.seeOther(URI.create(Util.getBaseUrl() + "/portal")).build();
 	    }
 
-		private void createspaceFolder(Space s, SpaceService spaceService) {
+		private void createspaceFolder(Space s) {
 			 try {
 				Session session = repositoryService.getCurrentRepository().getSystemSession("collaboration");
 				Node rootNode = session.getRootNode();
@@ -242,8 +253,6 @@ public class OppRestService implements ResourceContainer {
 		Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
 		if (sourceIdentity == null)
 			return Response.status(Response.Status.UNAUTHORIZED).build();
-		SpaceService spaceService = Util.getSpaceService(portalContainerName);
-		IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 		Space dealroom = spaceService.getSpaceByPrettyName(oppName);
 		if(dealroom != null) {
 			Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, dealroom.getPrettyName(), false);
@@ -300,8 +309,7 @@ public class OppRestService implements ResourceContainer {
 				return Response.status(Response.Status.UNAUTHORIZED).build();
 			}
 
-			
-			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
+
 			Space space = spaceService.getSpaceByDisplayName(oppName);
 			if(space == null) {
 				return Response.ok("Opportunity Not Found", mediaType).build();
@@ -383,10 +391,7 @@ public class OppRestService implements ResourceContainer {
 				return Response.status(Response.Status.UNAUTHORIZED).build();
 			}
 
-			
-			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
-			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
-			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
+
 			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
 			String profile_page = baseUrl+"/_ui/core/userprofile/UserProfilePage?u=";
 			String poster_link =profile_page+posterId;
@@ -479,9 +484,6 @@ public class OppRestService implements ResourceContainer {
 			poster=URLDecoder.decode(poster, "UTF-8");
 			commentPost =(commentPost!=null)? URLDecoder.decode(commentPost, "UTF-8"):null;
 			mentionned=(mentionned!=null)? URLDecoder.decode(mentionned, "UTF-8"):null;
-			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
-			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
-			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
 			if (space == null) {
 				return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
@@ -540,8 +542,6 @@ public class OppRestService implements ResourceContainer {
 		}
 
 	private void createcomment(String spaceName, String fieldName, String oldValue, String newValue) {
-		ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
-		IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 		Identity spaceIdentity = identityManager.getOrCreateIdentity(SpaceIdentityProvider.NAME, spaceName, false);
 		Profile oppProfile = spaceIdentity.getProfile();
 		Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
@@ -621,9 +621,9 @@ public class OppRestService implements ResourceContainer {
 	            System.out.println(clientSecret);
 	            System.out.println(redirectUri);
 	            configurationInfoStorage.saveConfigurationInfo(clientId, clientSecret, redirectUri);
-	            System.setProperty("oauth.salesforce.clientId", clientId);
-	            System.setProperty("oauth.salesforce.clientSecret",clientSecret);
-	            System.setProperty("oauth.salesforce.redirectUri", redirectUri);
+	            PropertyManager.setProperty(CLIENT_ID, clientId);
+				PropertyManager.setProperty(CLIENT_SECRET,clientSecret);
+				PropertyManager.setProperty(REDIRECT_URI, redirectUri);
 
 	            JSONObject jsonGlobal = new JSONObject();
 	            jsonGlobal.put("message"," conf saved");
@@ -645,12 +645,12 @@ public class OppRestService implements ResourceContainer {
 	            }
 	            
 	            JSONObject json = new JSONObject();
-	           
 
-	            
-	            String clientId= System.getProperty("oauth.salesforce.clientId");
-	            String clientSecret =System.getProperty("oauth.salesforce.clientSecret");
-	            String redirectUri =System.getProperty("oauth.salesforce.redirectUri");
+
+
+	            String clientId= PropertyManager.getProperty(CLIENT_ID);
+	            String clientSecret = PropertyManager.getProperty(CLIENT_SECRET);
+	            String redirectUri = PropertyManager.getProperty(REDIRECT_URI) ;
 	            json.put("clientId",clientId);
 	            json.put("clientSecret",clientSecret);
 	            json.put("redirectUri",redirectUri);
@@ -674,8 +674,6 @@ public class OppRestService implements ResourceContainer {
 	    		 @QueryParam("workspaceName") String workspaceName,
 	    		 @QueryParam("nodepath") String nodepath) throws Exception {
 	    	Identity sourceIdentity = Util.getAuthenticatedUserIdentity(portalContainerName);
-	    	 SpaceService spaceService = Util.getSpaceService(portalContainerName);
-	    	 IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 	    	 boolean firstCall=false;
 	    	 String accesstoken=null;
 	            String instance_url=null;
@@ -1022,9 +1020,6 @@ public class OppRestService implements ResourceContainer {
 			textPost =(textPost!=null)? URLDecoder.decode(textPost, "UTF-8"):null;
 			contentPost=(contentPost!=null)? URLDecoder.decode(contentPost, "UTF-8"):null;
 			mentionned=(mentionned!=null)? URLDecoder.decode(mentionned, "UTF-8"):null;
-			SpaceService spaceService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
-			ActivityManager activityManager = (ActivityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ActivityManager.class);
-			IdentityManager identityManager = Util.getIdentityManager(portalContainerName);
 			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
 			String profile_page = baseUrl+RequestKeysConstants.SF_USER__PROFILE_PAGE;
 			String poster_link =profile_page+posterId;
@@ -1100,52 +1095,4 @@ public class OppRestService implements ResourceContainer {
 
 		return Response.status(200).build();
 	}
-
-	    
-	    
-	    // this rest service will be used to get update from SF chatter, auto send ajax update periodically  
-	    @POST
-	    @Path("update")
-	    @Consumes({MediaType.APPLICATION_JSON})
-	    public Response update(@Context HttpServletRequest request,@Context HttpServletResponse response,@Context UriInfo uriInfo,
-	                                 Map<String,String> space) throws Exception {
-		
-
-		Identity sourceIdentity = Util
-				.getAuthenticatedUserIdentity(portalContainerName);
-		MediaType mediaType = RestChecker.checkSupportedFormat("json",
-				SUPPORTED_FORMATS);
-
-		try {
-			if (sourceIdentity == null) {
-				return Response.status(Response.Status.UNAUTHORIZED).build();
-			}
-			  Cookie[] cookies = request.getCookies();
-			request.getRequestURI();
-			for (int i = 0; i < cookies.length; i++) {
-				Cookie cookie1 = cookies[i];
-				if (cookie1.getName().equals("tk_ck_")) {
-				}
-
-				if (cookie1.getName().equals("inst_ck_")) {
-				}
-
-			}
-			JSONObject jsonGlobal = new JSONObject();
-			jsonGlobal.put("message", " update");
-			return Response.ok(jsonGlobal.toString(), mediaType).build();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-					.entity("An internal error has occured").build();
-		}
-	}
-	    
-	    
-
-	    
-	    
-	    
-	    
-	    
 }
