@@ -55,8 +55,8 @@ public class OAuthServlet extends HttpServlet implements VariablesUtil{
 	public void init() throws ServletException {
 		try {
 			clientId=PropertyManager.getProperty(CLIENT_ID);
-			clientSecret =PropertyManager.getProperty(REDIRECT_URI) ;
-			redirectUri=PropertyManager.getProperty(CLIENT_SECRET);
+			clientSecret =PropertyManager.getProperty(CLIENT_SECRET) ;
+			redirectUri=PropertyManager.getProperty(REDIRECT_URI);
 
 			environment = RequestKeysConstants.SF_PROD;
 
