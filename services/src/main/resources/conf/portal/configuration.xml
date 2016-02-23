@@ -31,15 +31,15 @@
 		<init-params>
 			<value-param>
 				<name>redirectUri</name>
-				<value>${oauth.salesforce.redirectUri}</value>
+				<value>${oauth.salesforce.redirectUri:https://plfent-4.3.x-pkgpriv-salesforce-integration-snapshot.acceptance5.exoplatform.org/salesforce-extension/oauth/_callback}</value>
 			</value-param>
 			<value-param>
 				<name>clientSecret</name>
-				<value>${oauth.salesforce.clientSecret}</value>
+				<value>${oauth.salesforce.clientSecret:3281403007789330224}</value>
 			</value-param>
 			<value-param>
 				<name>clientId</name>
-				<value>${oauth.salesforce.clientId}</value>
+				<value>${oauth.salesforce.clientId:3MVG9Rd3qC6oMalVaRGdPD6BFFD89SgIXKOVxc2nwIPmdYDkFPuXBLWpPTz2D685IIG.DFVYEwYEdIqo9B827}</value>
 			</value-param>
 		</init-params>
 	</component>
