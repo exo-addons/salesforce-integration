@@ -10,4 +10,6 @@ public interface VariablesUtil {
     static final String REDIRECT_URI = "oauth.salesforce.redirectUri";
 
     static final String CLIENT_SECRET = "oauth.salesforce.clientSecret";
+
+    static final String SF_SECURITY_SID = "exo.salesforce.securitySID";
 }

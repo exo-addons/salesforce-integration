@@ -304,7 +304,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 			}
 			if (checkSring == null
 					|| !(new String(checkSring, "UTF-8"))
-							.equals(RequestKeysConstants.SF_SECURITY_SID)) {
+							.equals(PropertyManager.getProperty(SF_SECURITY_SID))) {
 	
 				return Response.status(Response.Status.UNAUTHORIZED).build();
 			}
@@ -386,7 +386,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 			}
 			if (checkSring == null
 					|| !(new String(checkSring, "UTF-8"))
-							.equals(RequestKeysConstants.SF_SECURITY_SID)) {
+						.equals(PropertyManager.getProperty(SF_SECURITY_SID))) {
 	
 				return Response.status(Response.Status.UNAUTHORIZED).build();
 			}
@@ -475,7 +475,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 			}
 			if (checkSring == null
 					|| !(new String(checkSring, "UTF-8"))
-							.equals(RequestKeysConstants.SF_SECURITY_SID)) {
+						.equals(PropertyManager.getProperty(SF_SECURITY_SID))) {
 	
 				return Response.status(Response.Status.UNAUTHORIZED).build();
 			}
@@ -615,15 +615,13 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 	            String clientId=conf.get("clientId");
 	            String clientSecret =conf.get("clientSecret");
 	            String redirectUri=conf.get("redirectUri");
-	            
-	            
-	            System.out.println(clientId);
-	            System.out.println(clientSecret);
-	            System.out.println(redirectUri);
+				String sfSecuritySID=conf.get("sfSecuritySID");
+
 	            configurationInfoStorage.saveConfigurationInfo(clientId, clientSecret, redirectUri);
 	            PropertyManager.setProperty(CLIENT_ID, clientId);
 				PropertyManager.setProperty(CLIENT_SECRET,clientSecret);
 				PropertyManager.setProperty(REDIRECT_URI, redirectUri);
+				PropertyManager.setProperty(SF_SECURITY_SID, sfSecuritySID);
 
 	            JSONObject jsonGlobal = new JSONObject();
 	            jsonGlobal.put("message"," conf saved");
@@ -651,9 +649,11 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 	            String clientId= PropertyManager.getProperty(CLIENT_ID);
 	            String clientSecret = PropertyManager.getProperty(CLIENT_SECRET);
 	            String redirectUri = PropertyManager.getProperty(REDIRECT_URI) ;
+	            String sfSecuritySID = PropertyManager.getProperty(SF_SECURITY_SID) ;
 	            json.put("clientId",clientId);
 	            json.put("clientSecret",clientSecret);
 	            json.put("redirectUri",redirectUri);
+				json.put("sfSecuritySID",sfSecuritySID);
 
 	           
 	            return Response.ok(json.toString(), MediaType.APPLICATION_JSON).build();
