@@ -68,9 +68,6 @@
                                 <field name="groups">
                                     <string>*:/platform/users</string>
                                 </field>
-                                <field name="enabled">
-                                    <string>false</string>
-                                </field>
                             </object>
                         </value>
                     </collection>

@@ -11,6 +11,10 @@
                 <label>Redirect Uri</label>
                 <input id="redirectUri" type="text" class="field" value="" />
             </div>
+            <div class="form-create-row">
+                <label>Security SID</label>
+                <input id="sfSecuritySID" type="text" class="field" value="" />
+            </div>
 	 <button class="btn btn-primary" type="button" id="target">Save</button>
 
 

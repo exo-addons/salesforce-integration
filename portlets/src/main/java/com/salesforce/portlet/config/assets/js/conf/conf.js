@@ -7,6 +7,7 @@ var conf;
     conf.clientId = $("#clientId").val();
     conf.clientSecret = $("#clientSecret").val();
     conf.redirectUri = $("#redirectUri").val();
+    conf.sfSecuritySID = $("#sfSecuritySID").val();
     
     $.ajax({
         url: "/rest/private/salesforce/config",
@@ -32,7 +33,8 @@ $(document).ready(function() {
             $("#clientId").val(data.clientId);
             $("#clientSecret").val(data.clientSecret);
             $("#redirectUri").val(data.redirectUri);
-            
+            $("#sfSecuritySID").val(data.sfSecuritySID);
+
         }
     })
 
