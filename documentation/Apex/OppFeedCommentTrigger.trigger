@@ -18,9 +18,10 @@ String parameters='poster='+EncodingUtil.urlEncode(UserInfo.getName(), 'UTF-8');
                      parameters += '&commentPost='+EncodingUtil.urlEncode(F.CommentBody, 'UTF-8');
                      String mentionnedNames='';
                      Boolean isFirst = true;
+                     String mentionnedIds='';
                     ConnectApi.Comment comment=ConnectApi.ChatterFeeds.getComment(null, F.Id);
 
-               
+
                List<ConnectApi.MessageSegment> messageSegments = comment.body.messageSegments;
                         for (ConnectApi.MessageSegment messageSegment : messageSegments) {
                                 if (messageSegment instanceof ConnectApi.MentionSegment) {
@@ -29,25 +30,28 @@ String parameters='poster='+EncodingUtil.urlEncode(UserInfo.getName(), 'UTF-8');
                                     //System.debug('Text message:'+mentionSegment.name);
                                     if(isFirst) {
                                     mentionnedNames+=mentionSegment.name;
+                                    mentionnedIds+=mentionSegment.record.id;
                                     isFirst=false;
                                     }else{
                                      mentionnedNames+=','+mentionSegment.name;
+                                     mentionnedIds+=','+mentionSegment.record.id;
                                     }
                                 }
-                                
+
                         }
-                        if(String.isNotEmpty(mentionnedNames))  
-                        parameters += '&mentionned='+EncodingUtil.urlEncode(mentionnedNames, 'UTF-8');
-                // }
-         
+                        if(String.isNotEmpty(mentionnedNames)) {
+                            parameters += '&mentionned='+EncodingUtil.urlEncode(mentionnedNames, 'UTF-8');
+                            parameters += '&mentionnedIds='+EncodingUtil.urlEncode(mentionnedIds, 'UTF-8');
+                        }
 
 
-            
-           
-           
-        } 
-        System.Debug(parameters);                        
+
+
+
+
+        }
+        System.Debug(parameters);
         HttpCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/chattercomments/'+F.ParentId+'?'+parameters);
     }
-    
+
 }
