@@ -178,10 +178,13 @@
             <div id="ActivityContextBox${activity.id}">
                 <div class="heading">
                     <span class="arrowLeft"></span>
-                    <% if (activityDeletable) {
-                    %>
-                    <a href="javascript:void(0)" data-confirm="$labelToDeleteThisActivity" data-delete="<%=uicomponent.event("DeleteActivity", uicomponent.getId(), "");%>" class="uiIconClose uiIconLightGray controllDelete" id="DeleteActivityButton${activity.id}"></a>
-                    <%}%>
+                    <div class="actLink">
+                         <a id="Permalink${activity.id}" class="uiIconLink uiIconLightGray" rel="tooltip" data-placement="bottom" title="$viewActivityTip" href="<%=uicomponent.getActivityPermalink(activity.id)%>"></a>
+                         <% if (activityDeletable) {
+                         %>
+                            <a href="javascript:void(0)" data-confirm="$labelToDeleteThisActivity" data-caption="$captionConfirmation" data-close="$labelClosebutton" data-ok="$labelConfirmbutton"  data-delete="<%=uicomponent.event("DeleteActivity", uicomponent.getId(), "");%>" class="uiIconClose uiIconLightGray controllDelete" id="DeleteActivityButton${activity.id}"></a>
+                          <%}%>
+                    </div>
                     <div class="author">
                         <a  href="$ownerUri">$ownerName</a>
                     </div>

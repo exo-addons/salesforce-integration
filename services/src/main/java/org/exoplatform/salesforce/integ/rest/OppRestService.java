@@ -241,7 +241,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 				salesForceFolder.getSession().save();
 			} catch (RepositoryException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error(e.getMessage(), e);
 			}
 			
 		}
@@ -540,7 +540,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 				activityManager.saveComment(activityPost, newcomment);
 				return Response.ok("comment created", mediaType).build();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error(e.getMessage(), e);
 				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("An internal error has occured").build();
 			}
 
@@ -593,7 +593,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 				identityManager.updateProfile(oppProfile);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error(e.getMessage(), e);
 		}
 
 		ExoSocialActivity newcomment = new ExoSocialActivityImpl();
@@ -632,7 +632,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 	            jsonGlobal.put("message"," conf saved");
 	            return Response.ok(jsonGlobal.toString(), mediaType).build();
 	        } catch (Exception e) {
-	            e.printStackTrace();
+	            LOG.error(e.getMessage(), e);
 	            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("An internal error has occured").build();
 	        }
 	    }
@@ -663,7 +663,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 	           
 	            return Response.ok(json.toString(), MediaType.APPLICATION_JSON).build();
 	        } catch (Exception e) {
-	            e.printStackTrace();
+	            LOG.error(e.getMessage(), e);
 	            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("An internal error has occured").build();
 	        }
 	    }
@@ -838,7 +838,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 									session.save();
 								} catch (Exception e) {
 									// TODO Auto-generated catch block
-									e.printStackTrace();
+									LOG.error(e.getMessage(), e);
 								}
 
 							}
@@ -989,7 +989,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 							session.save();
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
-							e.printStackTrace();
+							LOG.error(e.getMessage(), e);
 						}
 
 					}

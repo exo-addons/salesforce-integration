@@ -49,7 +49,7 @@ public class OppServlet extends HttpServlet {
 		return;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.error(e.getMessage(), e);
 		}
 		
 	}
@@ -90,7 +90,7 @@ public class OppServlet extends HttpServlet {
 					 name =results.getJSONObject(0).getString("Name");
 				} catch (JSONException e) {
 					
-					e.printStackTrace();
+					LOG.error(e.getMessage(), e);
 					throw new ServletException(e);
 				}
 			}

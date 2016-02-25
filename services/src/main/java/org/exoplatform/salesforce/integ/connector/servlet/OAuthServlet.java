@@ -137,14 +137,14 @@ public class OAuthServlet extends HttpServlet implements VariablesUtil{
 						instanceUrl = authResponse
 								.getString(RequestKeysConstants.INSTANCE_URL);
 					} catch (JSONException e) {
-						e.printStackTrace();
+						LOG.error(e.getMessage(), e);
 						throw new ServletException(e);
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+						LOG.error(e.getMessage(), e);
 					}
 				} catch (HttpException e) {
-					e.printStackTrace();
+					LOG.error(e.getMessage(), e);
 					throw new ServletException(e);
 				} finally {
 					post.releaseConnection();
