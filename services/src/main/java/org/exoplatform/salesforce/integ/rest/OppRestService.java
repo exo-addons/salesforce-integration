@@ -97,16 +97,18 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 		SpaceService spaceService;
 		IdentityManager identityManager;
 		ActivityManager activityManager;
+		PostActivitiesService postActivitiesService;
 		//private DateTime CloseDate;
 	    private static final String portalContainerName = "portal";
 	    private static final String[] SUPPORTED_FORMATS = new String[]{"json"};
 
-	public OppRestService(OrganizationService orgService, RepositoryService repositoryService, SpaceService spaceService, IdentityManager identityManager, ActivityManager activityManager) {
+	public OppRestService(OrganizationService orgService, RepositoryService repositoryService, SpaceService spaceService, IdentityManager identityManager, ActivityManager activityManager, PostActivitiesService postActivitiesService) {
 		this.orgService = orgService;
 		this.repositoryService = repositoryService;
 		this.spaceService = spaceService;
 		this.identityManager = identityManager;
 		this.activityManager = activityManager;
+		this.postActivitiesService = postActivitiesService;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -432,7 +434,6 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
              activityManager.saveActivityNoReturn(spaceIdentity, activity);
            
 			try {
-				PostActivitiesService postActivitiesService = (PostActivitiesService) PortalContainer.getInstance().getComponentInstanceOfType(PostActivitiesService.class);
 				postActivitiesService.createEntity(new PostActivitiesEntity(activity.getId(), postId));
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -480,64 +481,68 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 				return Response.status(Response.Status.UNAUTHORIZED).build();
 			}
 
-			oppName=URLDecoder.decode(oppName, "UTF-8");
-			poster=URLDecoder.decode(poster, "UTF-8");
-			commentPost =(commentPost!=null)? URLDecoder.decode(commentPost, "UTF-8"):null;
-			mentionned=(mentionned!=null)? URLDecoder.decode(mentionned, "UTF-8"):null;
-			Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
-			if (space == null) {
-				return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
-			}
-			
-			String profile_page = baseUrl+RequestKeysConstants.SF_USER__PROFILE_PAGE;
-			String poster_link =profile_page+posterId;
-			Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
-			PostActivitiesService postActivitiesService = (PostActivitiesService) PortalContainer.getInstance().getComponentInstanceOfType(PostActivitiesService.class);
-			PostActivitiesEntity chatterPost=postActivitiesService.findEntityByPostId(postID);
-			if(chatterPost==null){
-				return Response.status(Response.Status.NOT_FOUND).entity("no related post found").build();
-			}
-			//chatterPost.getPostActivityId()
-			
-			ExoSocialActivity activityPost = activityManager.getActivity(chatterPost.getActivityId());
-			if(activityPost==null){
-				return Response.status(Response.Status.NOT_FOUND).entity("no related post found").build();
-			}
-			// activity.setUserId(salesforceIdentity.getId());
-             //activity.setType("");
+			try {
+				oppName = URLDecoder.decode(oppName, "UTF-8");
+				poster = URLDecoder.decode(poster, "UTF-8");
+				commentPost = (commentPost != null) ? URLDecoder.decode(commentPost, "UTF-8") : null;
+				mentionned = (mentionned != null) ? URLDecoder.decode(mentionned, "UTF-8") : null;
+				Space space = spaceService.getSpaceByDisplayName(URLDecoder.decode(oppName, "UTF-8"));
+				if (space == null) {
+					return Response.status(Response.Status.NOT_FOUND).entity("Opportunity not found").build();
+				}
 
-			String activitybody="<a href=\""
-					+poster_link+ "\">"+poster+"</a>";
-			//if(postType.equals("TextPost")){
-				if(mentionned!=null){
+				String profile_page = baseUrl + RequestKeysConstants.SF_USER__PROFILE_PAGE;
+				String poster_link = profile_page + posterId;
+				Identity salesforceIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, "salesforce", false);
+				PostActivitiesEntity chatterPost = postActivitiesService.findEntityByPostId(postID);
+				if (chatterPost == null) {
+					return Response.status(Response.Status.NOT_FOUND).entity("no related post found").build();
+				}
+				//chatterPost.getPostActivityId()
+
+				ExoSocialActivity activityPost = activityManager.getActivity(chatterPost.getActivityId());
+				if (activityPost == null) {
+					return Response.status(Response.Status.NOT_FOUND).entity("no related post found").build();
+				}
+				// activity.setUserId(salesforceIdentity.getId());
+				//activity.setType("");
+
+				String activitybody = "<a href=\""
+						+ poster_link + "\">" + poster + "</a>";
+				//if(postType.equals("TextPost")){
+				if (mentionned != null) {
 					String[] mentionnedList = mentionned.split(",");
 					String[] mentionnedListIds = mentionnedIds.split(",");
-					for(int i=0 ; i<mentionnedList.length;i++){
-						String montionned_link=profile_page+mentionnedListIds[i];
-						commentPost =StringUtils.replace(commentPost, "@"+mentionnedList[i], "<a href=\""
-								+montionned_link+ "\">"+"@"+mentionnedList[i]+"</a>",1);
+					for (int i = 0; i < mentionnedList.length; i++) {
+						String montionned_link = profile_page + mentionnedListIds[i];
+						commentPost = StringUtils.replace(commentPost, "@" + mentionnedList[i], "<a href=\""
+								+ montionned_link + "\">" + "@" + mentionnedList[i] + "</a>", 1);
 						//StringUtils.replace(text, searchString, replacement, max)e
 						//StringUtils.replaceChars(str, searchChar, replaceChar)
-						System.out.println(mentionnedList[i]);
-						
+						LOG.info("mentionned User:" + mentionnedList[i]);
+
 					}
-				
-				//textPost=StringUtils.substringAfter("@"+mentionned, textpost);
-				//textPost= StringUtils.substringAfter(textPost, "@"+mentionned);
-				//activitybody+=textPost;
-				
-				
+
+					//textPost=StringUtils.substringAfter("@"+mentionned, textpost);
+					//textPost= StringUtils.substringAfter(textPost, "@"+mentionned);
+					//activitybody+=textPost;
+
+
 				}
-				activitybody+=" posted new comment: "+commentPost;
-			//}
-			
+				activitybody += " posted new comment: " + commentPost;
+				//}
+
 				ExoSocialActivity newcomment = new ExoSocialActivityImpl();
 				newcomment.setType(UIDefaultActivity.ACTIVITY_TYPE);
 				newcomment.setUserId(salesforceIdentity.getId());
 				newcomment.setTitle(activitybody);
 				newcomment.setBody(activitybody);
-				activityManager.saveComment(activityPost,newcomment);
-             return Response.ok("comment created", mediaType).build();
+				activityManager.saveComment(activityPost, newcomment);
+				return Response.ok("comment created", mediaType).build();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("An internal error has occured").build();
+			}
 
 		}
 
@@ -1059,7 +1064,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 			Map<String, String> templateParams = new HashMap<String, String>();
 			String activitybody="<a href=\""
 					+poster_link+ "\">"+poster+"</a>"
-							+ "posted new file "+contentPostText;
+							+ " posted new file "+contentPostText;
 			if(mentionned!=null){
 				String[] mentionnedList = mentionned.split(",");
 				String[] mentionnedListIds = mentionnedIds.split(",");
@@ -1090,7 +1095,6 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 			activity.setTitle(activitybody);
 			activity.setBody(activitybody);
             activityManager.saveActivityNoReturn(spaceIdentity, activity);
-			PostActivitiesService postActivitiesService = (PostActivitiesService) PortalContainer.getInstance().getComponentInstanceOfType(PostActivitiesService.class);
 			postActivitiesService.createEntity(new PostActivitiesEntity(activity.getId(), postId));
 
 		return Response.status(200).build();
