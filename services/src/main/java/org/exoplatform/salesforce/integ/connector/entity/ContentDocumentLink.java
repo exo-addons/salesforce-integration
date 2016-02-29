@@ -55,18 +55,4 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
 	    public void setShareType(ShareTypeEnum ShareType) {
 	        this.ShareType = ShareType;
 	    }
-
-	    // Visibility
-	    @XStreamConverter(PicklistEnumConverter.class)
-	    private VisibilityEnum Visibility;
-
-	    @JsonProperty("Visibility")
-	    public VisibilityEnum getVisibility() {
-	        return this.Visibility;
-	    }
-
-	    @JsonProperty("Visibility")
-	    public void setVisibility(VisibilityEnum Visibility) {
-	        this.Visibility = Visibility;
-	    }
 }

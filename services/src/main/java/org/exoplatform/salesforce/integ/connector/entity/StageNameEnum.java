@@ -9,28 +9,28 @@ import org.codehaus.jackson.annotate.JsonValue;
  */
 public enum StageNameEnum {
 
-//	enum for the different stage on opportunity Prospecting Qualification Needs Analysis Id. Decision Makers Perception Analysis Proposal/Price Quote Negotiation/Review
-	
-    // Prospecting
-    PROSPECTING("Prospecting"),
-    // Qualification
-    QUALIFICATION("Qualification"),
-    // Needs Analysis
-    NEEDS_ANALYSIS("Needs Analysis"),
-    // Value Proposition
-    VALUE_PROPOSITION("Value Proposition"),
-    // Id. Decision Makers
-    ID__DECISION_MAKERS("Id. Decision Makers"),
-    // Perception Analysis
-    PERCEPTION_ANALYSIS("Perception Analysis"),
-    // Proposal/Price Quote
-    PROPOSAL_PRICE_QUOTE("Proposal/Price Quote"),
-    // Negotiation/Review
-    NEGOTIATION_REVIEW("Negotiation/Review"),
+    // Cancelled Cloud
+    CANCELLED_CLOUD("Cancelled Cloud"),
+    // Cancelled Community
+    CANCELLED_COMMUNITY("Cancelled Community"),
+    // Champion
+    CHAMPION("Champion"),
+    // Closed Lost
+    CLOSED_LOST("Closed Lost"),
     // Closed Won
     CLOSED_WON("Closed Won"),
-    // Closed Lost
-    CLOSED_LOST("Closed Lost");
+    // Duplicate
+    DUPLICATE("Duplicate"),
+    // Evaluation
+    EVALUATION("Evaluation"),
+    // Goal
+    GOAL("Goal"),
+    // Negotiation
+    NEGOTIATION("Negotiation"),
+    // No Decision
+    NO_DECISION("No Decision"),
+    // Walk away
+    WALK_AWAY("Walk away");
 
     final String value;
 
