@@ -58,7 +58,7 @@ public class OAuthServlet extends HttpServlet implements VariablesUtil{
 			clientSecret =PropertyManager.getProperty(CLIENT_SECRET) ;
 			redirectUri=PropertyManager.getProperty(REDIRECT_URI);
 
-			environment = SF_INSTANCE_URL;
+			environment = PropertyManager.getProperty(SF_INSTANCE_URL);
 
 			authUrl = environment + ResourcePath.AUTHORIZE.getPath()
 					+ "?response_type=code&client_id=" + clientId
