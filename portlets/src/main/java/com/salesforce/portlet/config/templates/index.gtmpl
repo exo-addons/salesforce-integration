@@ -15,6 +15,10 @@
                 <label>Security SID</label>
                 <input id="sfSecuritySID" type="text" class="field" value="" />
             </div>
+            <div class="form-create-row">
+                <label>Salesforce Instance URL</label>
+                <input id="sfURL" type="text" class="field" value="" />
+            </div>
 	 <button class="btn btn-primary" type="button" id="target">Save</button>
 
 

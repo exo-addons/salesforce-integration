@@ -64,7 +64,7 @@ public class OpportunityCreateActivityJob implements Job,VariablesUtil {
 				.setClientId(PropertyManager.getProperty(CLIENT_ID))
 				.setClientSecret(PropertyManager.getProperty(CLIENT_SECRET))
 				.setRedirectURI(PropertyManager.getProperty(REDIRECT_URI))
-				.setLoginEndpoint(RequestKeysConstants.SF_PROD)
+				.setLoginEndpoint(SF_INSTANCE_URL)
 				.setApiVersion(apiVersion);
 				
 				ApiSession s =  new ApiSession(mEntry.getValue().getAccesstoken(),mEntry.getValue().getInstanceUrl());
