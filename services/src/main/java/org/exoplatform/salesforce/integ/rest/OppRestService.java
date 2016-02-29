@@ -622,12 +622,14 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 	            String clientSecret =conf.get("clientSecret");
 	            String redirectUri=conf.get("redirectUri");
 				String sfSecuritySID=conf.get("sfSecuritySID");
+				String sfURL=conf.get("sfURL");
 
 	            configurationInfoStorage.saveConfigurationInfo(clientId, clientSecret, redirectUri);
 	            PropertyManager.setProperty(CLIENT_ID, clientId);
 				PropertyManager.setProperty(CLIENT_SECRET,clientSecret);
 				PropertyManager.setProperty(REDIRECT_URI, redirectUri);
 				PropertyManager.setProperty(SF_SECURITY_SID, sfSecuritySID);
+				PropertyManager.setProperty(SF_INSTANCE_URL, sfURL);
 
 	            JSONObject jsonGlobal = new JSONObject();
 	            jsonGlobal.put("message"," conf saved");
@@ -656,10 +658,12 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 	            String clientSecret = PropertyManager.getProperty(CLIENT_SECRET);
 	            String redirectUri = PropertyManager.getProperty(REDIRECT_URI) ;
 	            String sfSecuritySID = PropertyManager.getProperty(SF_SECURITY_SID) ;
+	            String sfURL = PropertyManager.getProperty(SF_INSTANCE_URL) ;
 	            json.put("clientId",clientId);
 	            json.put("clientSecret",clientSecret);
 	            json.put("redirectUri",redirectUri);
 				json.put("sfSecuritySID",sfSecuritySID);
+				json.put("sfURL",sfURL);
 
 	           
 	            return Response.ok(json.toString(), MediaType.APPLICATION_JSON).build();

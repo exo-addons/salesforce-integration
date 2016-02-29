@@ -2,6 +2,7 @@ package org.exoplatform.salesforce.config;
 
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
+import org.exoplatform.salesforce.VariablesUtil;
 import org.exoplatform.salesforce.integ.util.RequestKeysConstants;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -10,7 +11,7 @@ import org.picocontainer.Startable;
 import com.force.api.ApiConfig;
 import com.force.api.ApiVersion;
 
-public class ExoSalesForceClientService {
+public class ExoSalesForceClientService implements VariablesUtil {
 	private static final Log log = ExoLogger.getLogger(ExoSalesForceClientService.class);
 	private String clientId;
 	private String clientSecret;
@@ -53,7 +54,7 @@ public class ExoSalesForceClientService {
 			ApiVersion apiVersion = ApiVersion.DEFAULT_VERSION;
 			apiconfig = new ApiConfig().setClientId(clientId)
 					.setClientSecret(clientSecret).setRedirectURI(redirectUri)
-					.setLoginEndpoint(RequestKeysConstants.SF_PROD)
+					.setLoginEndpoint(SF_INSTANCE_URL)
 					.setApiVersion(apiVersion);
 			log.info(" ================================= Sales force init API ================");
 		} catch (Exception e) {
