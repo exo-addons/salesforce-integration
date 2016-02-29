@@ -48,7 +48,6 @@ String parameters='poster='+EncodingUtil.urlEncode(UserInfo.getName(), 'UTF-8');
 
 
 
-
         }
         System.Debug(parameters);
         HttpCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/chattercomments/'+F.ParentId+'?'+parameters);

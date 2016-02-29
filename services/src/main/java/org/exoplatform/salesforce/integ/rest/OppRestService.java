@@ -147,6 +147,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 				try {
 					opp = api.getSObject("Opportunity", oppID).as(Opportunity.class);
 				} catch (Exception e) {
+					LOG.error(e.getMessage(), e);
 					return Response.serverError().status(404).build();
 				}
 				oppName = opp.getName();

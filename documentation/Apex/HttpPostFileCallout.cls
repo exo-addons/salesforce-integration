@@ -12,8 +12,7 @@ public class HttpPostFileCallout {
     req.setMethod('POST');
     req.setBody(EncodingUtil.base64Encode(fileBody));
     req.setEndpoint(url);
-
-    req.setMethod('POST');
+    req.setTimeout(ConfigurationManager.CALLOUT_TIMEOUT);
     req.setCompressed(false);
     req.setHeader('Content-Type', 'multipart/form-data'); 
 
