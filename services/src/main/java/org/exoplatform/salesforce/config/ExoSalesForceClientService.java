@@ -1,5 +1,7 @@
 package org.exoplatform.salesforce.config;
 
+import org.exoplatform.commons.utils.PropertyManager;
+import org.exoplatform.container.PropertyManagerManaged;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.salesforce.VariablesUtil;
@@ -54,7 +56,7 @@ public class ExoSalesForceClientService implements VariablesUtil {
 			ApiVersion apiVersion = ApiVersion.DEFAULT_VERSION;
 			apiconfig = new ApiConfig().setClientId(clientId)
 					.setClientSecret(clientSecret).setRedirectURI(redirectUri)
-					.setLoginEndpoint(SF_INSTANCE_URL)
+					.setLoginEndpoint(PropertyManager.getProperty(SF_INSTANCE_URL))
 					.setApiVersion(apiVersion);
 			log.info(" ================================= Sales force init API ================");
 		} catch (Exception e) {
