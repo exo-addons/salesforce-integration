@@ -11,6 +11,7 @@ String parameters='poster='+EncodingUtil.urlEncode(UserInfo.getName(), 'UTF-8');
             parameters +='&oppName='+EncodingUtil.urlEncode(oppName, 'UTF-8');
             System.debug('the opportunity name is: '+oppName);
              parameters +='&postID='+F.FeedItemId;
+             parameters +='&posterId='+F.CreatedById;
                 System.debug (UserInfo.getName()+ ' posted new comment'+  F.CommentBody);
                     //check if the comment on post is a mention 
                     
@@ -19,6 +20,8 @@ String parameters='poster='+EncodingUtil.urlEncode(UserInfo.getName(), 'UTF-8');
                      String mentionnedNames='';
                      Boolean isFirst = true;
                      String mentionnedIds='';
+                     string baseUrl = System.URL.getSalesforceBaseUrl().toExternalForm();
+                     parameters +='&baseUrl='+baseUrl;
                     ConnectApi.Comment comment=ConnectApi.ChatterFeeds.getComment(null, F.Id);
 
 
