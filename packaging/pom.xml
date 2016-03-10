@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.exoplatform.addons.salesforce-integration</groupId>
     <artifactId>salesforce-extension</artifactId>
-    <version>1.0.2-CR01</version>
+    <version>1.0.x-SNAPSHOT</version>
   </parent>
   <artifactId>salesforce-packaging</artifactId>
   <packaging>pom</packaging>
