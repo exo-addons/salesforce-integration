@@ -19,9 +19,8 @@ Blob data=null;
              String mentionnedIds='';
              string baseUrl = System.URL.getSalesforceBaseUrl().toExternalForm();
              parameters +='&baseUrl='+baseUrl;
-            // URL currentURL = URL.getCurrentRequestUrl();
-             
-             //check if the text post is a mention 
+
+             //check if the text post is a mention
              ConnectApi.FeedElement feedElement = ConnectApi.ChatterFeeds.getFeedElement(null, F.id);
              List<ConnectApi.MessageSegment> messageSegments = feedElement.body.messageSegments;
                         for (ConnectApi.MessageSegment messageSegment : messageSegments) {
@@ -38,11 +37,11 @@ Blob data=null;
                                      mentionnedNames+=','+mentionSegment.name;
                                      mentionnedIds+=','+mentionSegment.record.id;
                                     }
-                                    
+
                                     System.debug(' the mentionned Name is:'+mentionSegment.name);
                                     //parameters += '&mentionned='+EncodingUtil.urlEncode(mentionSegment.name, 'UTF-8');
                                 }
-                                
+
                         }
                         if(String.isNotEmpty(mentionnedNames))  {
                         parameters += '&mentionned='+EncodingUtil.urlEncode(mentionnedNames, 'UTF-8');
@@ -53,12 +52,11 @@ Blob data=null;
                 System.debug (UserInfo.getName()+ ' posted new message'+  F.body);
                      parameters += '&textPost='+EncodingUtil.urlEncode(F.body, 'UTF-8');
                  }
-         
+
                 if(F.Type=='ContentPost')
-                  { 
-                  System.debug('is content post');
-                     parameters += '&contentPost='+EncodingUtil.urlEncode(F.ContentFileName, 'UTF-8');
-                     
+                  {
+                  	System.debug('is content post');
+					//parameters += '&contentPost='+EncodingUtil.urlEncode(F., 'UTF-8');
                     if(F.body!=null)
                         {
                        parameters += '&contentPostText='+EncodingUtil.urlEncode(F.body, 'UTF-8');
@@ -66,10 +64,10 @@ Blob data=null;
 
                     if(F.ContentData!=null)
                         {
-                      data=F.ContentData;
+                          data=F.ContentData;
                         }
-                        
-                         
+
+
                       else
                       //get the related record if attached from existing content
                         {
@@ -77,23 +75,27 @@ Blob data=null;
                           data=C.VersionData;
                         }
                         parameters +='&contentID='+F.RelatedRecordId;
-                        System.debug(ConfigurationManager.CALLOUT_ENDPOINT); 
-              HttpPostFileCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/chatterattachments/'+F.ParentId+'?'+parameters,data);
+                        System.debug(ConfigurationManager.CALLOUT_ENDPOINT);
+                      	if (!Test.isRunningTest()) {
+              				HttpPostFileCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/chatterattachments/'+F.ParentId+'?'+parameters,data);
+                        }
               return;
-                 
+
                   }
                if(F.Type=='LinkPost')
-                  { 
+                  {
                    System.debug('link url'+F.LinkUrl);
                    parameters += 'postedlink='+EncodingUtil.urlEncode(F.LinkUrl, 'UTF-8');
                   }
-                  
 
-           
-           
-        } 
-                              
-        HttpCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/chatterpost/'+F.ParentId+'?'+parameters);
+
+
+
+        }
+
+        if (!Test.isRunningTest()) {
+        	HttpCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/chatterpost/'+F.ParentId+'?'+parameters);
+        }
     }
     
 }

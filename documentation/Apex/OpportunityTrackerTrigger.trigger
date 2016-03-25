@@ -23,7 +23,9 @@ trigger OpportunityTrackerTrigger on Opportunity (after update) {
         }
         parameters += '&olddescription='+olddescription;
         parameters += '&newdescription='+newdescription;
-                
-        HttpCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/addupdatecomment/'+EncodingUtil.urlEncode(oldOpp.Name, 'UTF-8')+'?'+parameters);
+
+		if (!Test.isRunningTest()) {
+        	HttpCallout.getContent(ConfigurationManager.CALLOUT_ENDPOINT+'salesforce/addupdatecomment/'+EncodingUtil.urlEncode(oldOpp.Name, 'UTF-8')+'?'+parameters);
+        }
     }
 }

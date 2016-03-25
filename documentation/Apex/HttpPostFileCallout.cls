@@ -13,6 +13,12 @@ public class HttpPostFileCallout {
     req.setBody(EncodingUtil.base64Encode(fileBody));
     req.setEndpoint(url);
     req.setTimeout(ConfigurationManager.CALLOUT_TIMEOUT);
+
+    Blob key = EncodingUtil.base64Decode('mRMjHmlC1C+1L/Dkz8EJuw==');
+    Blob cipherText = Crypto.encryptWithManagedIV('AES128', key, Blob.valueOf(ConfigurationManager.SID));
+    String strToken = 'Basic ' +EncodingUtil.base64Encode(cipherText);
+    req.setHeader('Authorization',strToken);
+
     req.setCompressed(false);
     req.setHeader('Content-Type', 'multipart/form-data'); 
 
