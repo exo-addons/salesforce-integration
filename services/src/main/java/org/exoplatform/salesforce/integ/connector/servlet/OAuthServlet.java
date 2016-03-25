@@ -54,18 +54,23 @@ public class OAuthServlet extends HttpServlet implements VariablesUtil{
 
 	public void init() throws ServletException {
 		try {
-			clientId=PropertyManager.getProperty(CLIENT_ID);
-			clientSecret =PropertyManager.getProperty(CLIENT_SECRET) ;
-			redirectUri=PropertyManager.getProperty(REDIRECT_URI);
+			clientId = PropertyManager.getProperty(CLIENT_ID);
+			clientSecret = PropertyManager.getProperty(CLIENT_SECRET);
+			redirectUri = PropertyManager.getProperty(REDIRECT_URI);
 
 			environment = PropertyManager.getProperty(SF_INSTANCE_URL);
 
-			authUrl = environment + ResourcePath.AUTHORIZE.getPath()
-					+ "?response_type=code&client_id=" + clientId
-					+ "&redirect_uri="
-					+ URLEncoder.encode(redirectUri, "UTF-8");
+			if(clientId != null && redirectUri != null) {
+				authUrl = environment + ResourcePath.AUTHORIZE.getPath()
+						+ "?response_type=code&client_id=" + clientId
+						+ "&redirect_uri="
+						+ URLEncoder.encode(redirectUri, "UTF-8");
+			} else {
+				LOG.warn(CLIENT_ID + " and " + REDIRECT_URI + " are not configured in the properties file. Salesforce Integration may not work as expected.");
+			}
 			tokenUrl = environment + ResourcePath.TOKEN.getPath();
-		} catch (UnsupportedEncodingException e) {
+		}
+		catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			throw new ServletException(e);
 		}
@@ -73,7 +78,7 @@ public class OAuthServlet extends HttpServlet implements VariablesUtil{
 
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		clientId = PropertyManager.getProperty(CLIENT_ID);;
+		clientId = PropertyManager.getProperty(CLIENT_ID);
 		redirectUri = PropertyManager.getProperty(REDIRECT_URI);
 		clientSecret = PropertyManager.getProperty(CLIENT_SECRET);
 		// use the session to store initial param to be re-used after callback
