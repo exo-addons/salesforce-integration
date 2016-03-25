@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.exoplatform.addons.salesforce-integration</groupId>
     <artifactId>salesforce-extension</artifactId>
-    <version>1.0.x-SNAPSHOT</version>
+    <version>1.0.1-M05</version>
   </parent>
   <artifactId>salesforce-extension-war</artifactId>
   <packaging>war</packaging>
