@@ -14,4 +14,8 @@ public interface VariablesUtil {
     static final String SF_SECURITY_SID = "exo.salesforce.securitySID";
 
     static final String SF_INSTANCE_URL = "exo.salesforce.instanceURL";
+
+    static final String SF_ADMIN_USERNAME = "exo.salesforce.userName";
+
+    static final String SF_ADMIN_PASSWORD = "exo.salesforce.password";
 }

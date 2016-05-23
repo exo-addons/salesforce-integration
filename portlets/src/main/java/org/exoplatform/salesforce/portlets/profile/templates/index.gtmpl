@@ -1,0 +1,83 @@
+<%
+    if(message != null && !message.equals("error")) {
+%>
+<div class="uiSocApplication salesforceInfo">
+    <i class="iconSalesforce"></i><h4 class="head-container">${userType} Details</h4>
+    <div class="group-user-info">
+      <div class="label-user-info">
+        <strong>Full Name:</strong>
+      </div>
+      <div class="value-user-info">
+        <div rel="tooltip" data-placement="top" title="" data-original-title="${fullName}"><a href="${SFUrl}" target="_blank">${fullName}</a></div>
+      </div>
+    </div>
+    <% if(accountName != null && !accountName.equals("")) { %>
+    <div class="group-user-info">
+      <div class="label-user-info">
+        <strong>Account Name:</strong>
+      </div>
+      <div class="value-user-info">
+        <div rel="tooltip" data-placement="top" title="" data-original-title="${accountName}">${accountName}</div>
+      </div>
+    </div>
+    <% }
+     if(owner != null  && !owner.equals("")) { %>
+        <div class="group-user-info">
+          <div class="label-user-info">
+            <strong>Owner:</strong>
+          </div>
+          <div class="value-user-info">
+            <div rel="tooltip" data-placement="top" title="" data-original-title="${owner}">${owner}</div>
+          </div>
+        </div>
+    <%
+    }
+    if(timeZone != null && !timeZone.equals("")) { %>
+    <div class="group-user-info">
+      <div class="label-user-info">
+        <strong>Time Zone:</strong>
+      </div>
+      <div class="value-user-info">
+        <div rel="tooltip" data-placement="top" title="" data-original-title="${timeZone}">${timeZone}</div>
+      </div>
+    </div>
+    <% }
+    if(rating != null && !rating.equals("")) { %>
+    <div class="group-user-info">
+      <div class="label-user-info">
+        <strong>Rating:</strong>
+      </div>
+      <div class="value-user-info">
+        <div rel="tooltip" data-placement="top" title="" data-original-title="${rating}">${rating}</div>
+      </div>
+    </div>
+    <% }
+     if(status != null  && !status.equals("")) { %>
+        <div class="group-user-info">
+          <div class="label-user-info">
+            <strong>Status:</strong>
+          </div>
+          <div class="value-user-info">
+            <div rel="tooltip" data-placement="top" title="" data-original-title="${status}">${status}</div>
+          </div>
+        </div>
+    <%
+    }
+    if(hasOpportunity) {
+        hasOpportunity = "Yes";
+    } else {
+        hasOpportunity = "No";
+    }
+    %>
+    <div class="group-user-info">
+      <div class="label-user-info">
+        <strong>Has Opportunity:</strong>
+      </div>
+      <div class="value-user-info">
+        <div rel="tooltip" data-placement="top" title="" data-original-title="${hasOpportunity}">${hasOpportunity}</div>
+      </div>
+    </div>
+</div>
+<%
+    }
+%>
