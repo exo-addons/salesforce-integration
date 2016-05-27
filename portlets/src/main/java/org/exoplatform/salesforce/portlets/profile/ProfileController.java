@@ -63,7 +63,10 @@ public class ProfileController {
 
     @PostConstruct
     public void init() {
-        api = salesforceLogin.loginToSalesforce();
+        api = salesforceLogin.getSfApi();
+        if(api == null) {
+            api = salesforceLogin.loginToSalesforce();
+        }
     }
 
     @View

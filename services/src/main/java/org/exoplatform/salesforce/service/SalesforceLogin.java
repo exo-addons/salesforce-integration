@@ -1,9 +1,7 @@
 package org.exoplatform.salesforce.service;
 
-import com.force.api.ApiConfig;
 import com.force.api.ApiSession;
 import com.force.api.ForceApi;
-import com.force.api.QueryResult;
 import org.apache.commons.codec.binary.Base64;
 import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.salesforce.VariablesUtil;
@@ -18,7 +16,6 @@ import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.MessageFormat;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -32,6 +29,13 @@ public class SalesforceLogin implements VariablesUtil{
     private static final String privateKeyFile = PropertyManager.getProperty(SF_PRIVATE_KEY_File);
 
     private static final Logger LOG = Logger.getLogger(SalesforceLogin.class.getName());
+
+    private static ForceApi sfApi;
+
+    public ForceApi getSfApi() {
+        //TODO: Persist access token of Force Api for future use
+        return sfApi;
+    }
 
     public ForceApi loginToSalesforce() {
 
@@ -92,7 +96,6 @@ public class SalesforceLogin implements VariablesUtil{
             } catch (JSONException jsonex) {
                 return null;
             }
-            ForceApi sfApi = null;
             if(accessToken != null && instanceURL != null) {
                 sfApi = new ForceApi(new ApiSession(accessToken, instanceURL));
             }
