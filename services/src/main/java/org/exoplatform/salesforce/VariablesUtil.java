@@ -17,5 +17,5 @@ public interface VariablesUtil {
 
     static final String SF_ADMIN_USERNAME = "exo.salesforce.userName";
 
-    static final String SF_ADMIN_PASSWORD = "exo.salesforce.password";
+    static final String SF_PRIVATE_KEY_File = "exo.salesforce.privateKeyFile";
 }
