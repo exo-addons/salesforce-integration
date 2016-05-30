@@ -11,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.application.RequestNavigationData;
 import org.exoplatform.salesforce.integ.connector.entity.Contact;
+import org.exoplatform.services.cache.CacheService;
+import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.security.Identity;
 import org.exoplatform.social.common.router.ExoRouter;
 import org.exoplatform.salesforce.integ.connector.entity.Account;
@@ -44,9 +46,14 @@ public class ProfileController {
     OrganizationService organizationService;
 
     @Inject
+    CacheService cacheService;
+
+    @Inject
     private SalesforceLogin salesforceLogin;
 
     private ForceApi api;
+
+    private ExoCache salesforceInfosCached;
 
     private static final String allowedGroupId = "/spaces/exo_employees";
 
@@ -71,7 +78,7 @@ public class ProfileController {
 
     @View
     public Response.Content index() throws Exception {
-        Map<String, Object> result = new HashMap<String, Object>();
+        Map<String, String> result = new HashMap<String, String>();
         if(api == null) {
             LOG.warning("Can not retreive lead informations: Can not connect to Salesforce.");
             result.put("message","error");
@@ -96,6 +103,13 @@ public class ProfileController {
             User userByName = uh.findUserByName(currentUserName);
             if (userByName == null) {
                 userByName = uh.findUserByName(currentUserIdentity.getUserId());
+            }
+            salesforceInfosCached = cacheService.getCacheInstance("SalesforceProfileInfos");
+            if(salesforceInfosCached.get(userByName.getEmail())!= null) {
+                result = (HashMap<String, String>) salesforceInfosCached.get(userByName.getEmail());
+            }
+            if(result != null && result.size() > 0) {
+                return index.with(result).ok();
             }
             String contactQuery = "SELECT Id, FirstName, LastName, Description, Contact_Status__c, Timezone__c, AccountId FROM Contact where Email=" + "\'" + userByName.getEmail() + "\' LIMIT 1";
             QueryResult queryResult = api.query(contactQuery, Contact.class);
@@ -175,7 +189,8 @@ public class ProfileController {
                 result.put("rating", rating);
                 result.put("status",status);
                 result.put("description", description);
-                result.put("hasOpportunity", hasOpportunity);
+                result.put("hasOpportunity", hasOpportunity.toString());
+                salesforceInfosCached.put(userByName.getEmail(),result);
             } else {
                 result.put("message", "error");
             }

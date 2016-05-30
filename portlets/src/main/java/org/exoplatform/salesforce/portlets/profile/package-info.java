@@ -2,6 +2,7 @@
 @Portlet
 @Bindings({
         @Binding(OrganizationService.class),
+        @Binding(CacheService.class),
         @Binding(SalesforceLogin.class)
 })
 
@@ -25,4 +26,5 @@ import juzu.plugin.binding.Bindings;
 import juzu.plugin.less.Less;
 import juzu.plugin.portlet.Portlet;
 import org.exoplatform.salesforce.service.SalesforceLogin;
+import org.exoplatform.services.cache.CacheService;
 import org.exoplatform.services.organization.OrganizationService;
