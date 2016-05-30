@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.exoplatform.addons.salesforce-integration</groupId>
     <artifactId>salesforce-packaging</artifactId>
-    <version>1.0.x-SNAPSHOT</version>
+    <version>1.0.5</version>
   </parent>
   <artifactId>salesforce-packaging-addon</artifactId>
   <packaging>pom</packaging>
