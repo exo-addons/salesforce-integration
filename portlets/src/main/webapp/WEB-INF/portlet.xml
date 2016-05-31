@@ -50,7 +50,7 @@
 			<mime-type>text/html</mime-type>
 		</supports>
 		<supported-locale>en</supported-locale>
-		<resource-bundle>locale.portlet.Portlets</resource-bundle>
+		<resource-bundle>locale.portlet.salesforce.Profile</resource-bundle>
 		<portlet-info>
 			<title>Salesforce Profile Portlet</title>
 			<short-title>Salesforce Profile Portlet</short-title>
