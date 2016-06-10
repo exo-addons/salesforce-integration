@@ -77,9 +77,9 @@ public class ProfileController {
         try {
             //TODO: Use refresh token if current access token expires
             // check if access token is valid sample ping first sobject
-            api.query("select Name Id Contact LIMIT 1", Lead.class);
+            api.query("SELECT Id FROM Contact LIMIT 1", Lead.class);
         } catch (Exception e) {
-            LOG.warning("Invalid Session ID. Trying to get a new session: "+e.getMessage());
+            LOG.warning("Current Session unavailable. Trying to get a new session: "+e.getMessage());
             api = salesforceLogin.loginToSalesforce();
         }
     }
