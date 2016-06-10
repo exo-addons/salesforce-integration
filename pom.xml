@@ -27,7 +27,7 @@
   </parent>
   <groupId>org.exoplatform.addons.salesforce-integration</groupId>
   <artifactId>salesforce-extension</artifactId>
-  <version>1.0.7</version>
+  <version>1.0.x-SNAPSHOT</version>
   <name>salesforce Extension</name>
   <packaging>pom</packaging>
   <description>salesforce Extension</description>
@@ -68,7 +68,7 @@
         <connection>scm:git:git://github.com/exo-addons/salesforce-integration.git</connection>
         <developerConnection>scm:git:git@github.com:exo-addons/salesforce-integration.git</developerConnection>
         <url>https://github.com/exo-addons/salesforce-integration</url>
-        <tag>1.0.7</tag>
+        <tag>HEAD</tag>
     </scm>
 
   <dependencyManagement>
