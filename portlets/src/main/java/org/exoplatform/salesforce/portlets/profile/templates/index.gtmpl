@@ -63,7 +63,7 @@
         </div>
     <%
     }
-    if(hasOpportunity) {
+    if(hasOpportunity == "true") {
         hasOpportunity = "Yes";
     } else {
         hasOpportunity = "No";
