@@ -189,7 +189,7 @@ public class OppRestService implements ResourceContainer,VariablesUtil {
 			project_.setDescription(description);
             project_.setType(DefaultSpaceApplicationHandler.NAME);
             project_.setVisibility(Space.HIDDEN);
-            project_.setRegistration(Space.CLOSE);
+            project_.setRegistration(Space.VALIDATION);
             project_.setPriority(Space.INTERMEDIATE_PRIORITY);
             Space s= spaceService.createSpace(project_, owner);
             createspaceFolder(project_);
