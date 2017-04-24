@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.exoplatform.addons.salesforce-integration</groupId>
     <artifactId>salesforce-extension</artifactId>
-    <version>1.0.x-SNAPSHOT</version>
+    <version>1.1.x-SNAPSHOT</version>
   </parent>
   <artifactId>salesforce-services</artifactId>
   <name>salesforce services</name>
@@ -40,11 +40,11 @@
       <artifactId>exo.core.component.organization.api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gatein.portal</groupId>
+      <groupId>org.exoplatform.gatein.portal</groupId>
       <artifactId>exo.portal.component.common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gatein.portal</groupId>
+      <groupId>org.exoplatform.gatein.portal</groupId>
       <artifactId>exo.portal.component.portal</artifactId>
     </dependency>
    <dependency>
@@ -60,11 +60,11 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.gatein.portal</groupId>
+      <groupId>org.exoplatform.gatein.portal</groupId>
       <artifactId>exo.portal.webui.portal</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gatein.portal</groupId>
+      <groupId>org.exoplatform.gatein.portal</groupId>
       <artifactId>exo.portal.component.web.api</artifactId>
     </dependency>
     <dependency>
