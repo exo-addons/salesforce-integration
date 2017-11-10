@@ -32,7 +32,7 @@
   <packaging>pom</packaging>
   <description>salesforce Extension</description>
   <properties>
-    <org.exoplatform.platform.version>5.0.x-SNAPSHOT</org.exoplatform.platform.version>
+    <org.exoplatform.platform.version>5.0.0-M29</org.exoplatform.platform.version>
     <hibernate.version>4.1.12.Final</hibernate.version>
       <org.liquibase.versio>3.3.2</org.liquibase.versio>
   </properties>
