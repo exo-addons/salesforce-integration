@@ -34,7 +34,6 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>${org.liquibase.versio}</version>
         </dependency>
     </dependencies>
 

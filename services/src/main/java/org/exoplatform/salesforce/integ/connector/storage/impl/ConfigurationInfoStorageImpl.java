@@ -8,10 +8,9 @@ import org.exoplatform.commons.chromattic.ChromatticManager;
 import org.exoplatform.salesforce.integ.connector.entity.ConfigurationInfo;
 import org.exoplatform.salesforce.integ.connector.storage.api.ConfigurationInfoStorage;
 import org.exoplatform.services.jcr.ext.hierarchy.NodeHierarchyCreator;
-import org.exoplatform.social.core.storage.impl.AbstractStorage;
 
 
-public class ConfigurationInfoStorageImpl extends AbstractStorage implements ConfigurationInfoStorage{
+public class ConfigurationInfoStorageImpl implements ConfigurationInfoStorage{
 
 
 

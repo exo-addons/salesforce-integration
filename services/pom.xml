@@ -33,38 +33,35 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-entitymanager</artifactId>
-      <version>${hibernate.version}</version>
     </dependency>
     <dependency>
       <groupId>org.exoplatform.core</groupId>
       <artifactId>exo.core.component.organization.api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gatein.portal</groupId>
+      <groupId>org.exoplatform.gatein.portal</groupId>
       <artifactId>exo.portal.component.common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gatein.portal</groupId>
+      <groupId>org.exoplatform.gatein.portal</groupId>
       <artifactId>exo.portal.component.portal</artifactId>
     </dependency>
    <dependency>
       <groupId>org.exoplatform.commons</groupId>
       <artifactId>commons-api</artifactId>
-      <version>${org.exoplatform.platform.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.exoplatform.commons</groupId>
       <artifactId>commons-component-common</artifactId>
-      <version>${org.exoplatform.platform.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.gatein.portal</groupId>
+      <groupId>org.exoplatform.gatein.portal</groupId>
       <artifactId>exo.portal.webui.portal</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gatein.portal</groupId>
+      <groupId>org.exoplatform.gatein.portal</groupId>
       <artifactId>exo.portal.component.web.api</artifactId>
     </dependency>
     <dependency>
@@ -88,16 +85,14 @@
       <artifactId>calendar-service</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.exoplatform.integration</groupId>
-      <artifactId>integ-ecms-social</artifactId>
+      <groupId>org.exoplatform.ecms</groupId>
+      <artifactId>ecms-social-integration</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.exoplatform.integration</groupId>
-      <artifactId>integ-calendar-social</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.exoplatform.platform</groupId>
-      <artifactId>platform-component-organization</artifactId>
+      <groupId>org.exoplatform.calendar</groupId>
+      <artifactId>calendar-social-integration</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.exoplatform.ecms</groupId>
@@ -129,6 +124,18 @@
 		<artifactId>force-rest-api</artifactId>
 		<version>0.0.20</version>
 	</dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.chromattic</groupId>
+      <artifactId>chromattic.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.chromattic</groupId>
+      <artifactId>chromattic.ext</artifactId>
+    </dependency>
   </dependencies>
 
 <build>
